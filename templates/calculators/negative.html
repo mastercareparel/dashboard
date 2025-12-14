@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Negative Sentiment Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:"Poppins",sans-serif;
+    }
+    body{
+      min-height:100vh;
+      background:#f7f0ff;           /* very very light purple */
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:30px 10px;
+      color:#2b2340;
+    }
+    .page{
+      width:100%;
+      max-width:1080px;
+    }
+    .header{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .header-icon{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      background:#f0e6ff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#7c4acb;
+      font-size:18px;
+    }
+    .header-text h1{
+      font-size:20px;
+      font-weight:600;
+      color:#342258;
+    }
+    .header-text span{
+      font-size:12px;
+      color:#8c7eb5;
+    }
+
+    .card-main{
+      background:#ffffff;
+      border-radius:16px;
+      padding:22px 22px 26px;
+      box-shadow:0 16px 40px rgba(130,90,200,0.15);
+      margin-bottom:18px;
+    }
+
+    .score-ring{
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      border:16px solid #fbe5e5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 10px;
+      position:relative;
+    }
+    .score-ring::before{
+      content:"";
+      position:absolute;
+      inset:12px;
+      border-radius:50%;
+      border:10px solid #e43b3b;
+    }
+    .score-value{
+      position:relative;
+      text-align:center;
+      color:#e43b3b;
+    }
+    .score-value h2{
+      font-size:42px;
+      font-weight:700;
+      line-height:1;
+    }
+    .score-value span{
+      display:block;
+      font-size:11px;
+      letter-spacing:1px;
+      margin-top:4px;
+    }
+    .score-label{
+      text-align:center;
+      font-size:20px;
+      font-weight:600;
+      color:#d43333;
+      margin-top:8px;
+    }
+    .score-info{
+      text-align:center;
+      font-size:13px;
+      color:#8f7fba;
+      margin-top:4px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1.1fr 0.9fr;
+      gap:18px;
+    }
+    .card{
+      background:#ffffff;
+      border-radius:16px;
+      padding:18px 18px 20px;
+      box-shadow:0 8px 24px rgba(130,90,200,0.12);
+    }
+    .card-title{
+      font-size:14px;
+      font-weight:600;
+      color:#3a285f;
+      margin-bottom:10px;
+    }
+
+    .field{
+      margin-bottom:14px;
+    }
+    .field label{
+      font-size:12px;
+      font-weight:500;
+      color:#4a396f;
+      display:block;
+      margin-bottom:6px;
+    }
+    .input{
+      width:100%;
+      border-radius:10px;
+      border:1px solid #ddccff;
+      padding:9px 11px;
+      font-size:14px;
+      background:#f8f3ff;
+      color:#301f54;
+      outline:none;
+    }
+    .input:focus{
+      border-color:#9a73ff;
+      box-shadow:0 0 0 1px rgba(154,115,255,0.3);
+    }
+    .formula-chip{
+      display:inline-block;
+      margin-top:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:#f1e7ff;
+      font-size:11px;
+      color:#7c68b8;
+    }
+
+    .rules-list{
+      list-style:none;
+      margin-top:6px;
+      font-size:12px;
+    }
+    .rules-list li{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:4px 0;
+    }
+    .rule-label{
+      color:#4b3a71;
+    }
+    .rule-score{
+      font-weight:600;
+    }
+    .rule-score.green{color:#16a34a;}
+    .rule-score.orange{color:#f59e0b;}
+    .rule-score.amber{color:#f97316;}
+    .rule-score.red{color:#dc2626;}
+    .rule-active{
+      background:#f4ecff;
+      border-radius:10px;
+      padding:4px 8px;
+    }
+
+    @media (max-width:800px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+      .card-main{
+        padding:18px 16px 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="header-icon">👎</div>
+      <div class="header-text">
+        <h1>Negative Sentiment</h1>
+        <span>Score Calculator Dashboard</span>
+      </div>
+    </div>
+
+    <!-- Score card -->
+    <div class="card-main">
+      <div class="score-ring">
+        <div class="score-value">
+          <h2 id="pointsDisplay">0</h2>
+          <span>POINTS</span>
+        </div>
+      </div>
+      <div id="gradeLabel" class="score-label">–</div>
+      <div id="summaryText" class="score-info">Negative Sentiment: 0.00%</div>
+    </div>
+
+    <div class="grid">
+      <!-- Input card -->
+      <div class="card">
+        <div class="card-title">Input Data</div>
+
+        <div class="field">
+          <label for="negCount">Negative Sentiment Count</label>
+          <input id="negCount" type="number" min="0" value="0" class="input">
+        </div>
+
+        <div class="field">
+          <label for="totalCount">Total Reviews</label>
+          <input id="totalCount" type="number" min="1" value="1" class="input">
+        </div>
+
+        <span class="formula-chip">(negative / total) × 100</span>
+      </div>
+
+      <!-- Rules card -->
+      <div class="card">
+        <div class="card-title">Scoring Rules</div>
+        <ul id="rules" class="rules-list">
+          <li id="rule-0">
+            <span class="rule-label">0% negative</span>
+            <span class="rule-score green">+5</span>
+          </li>
+          <li id="rule-2">
+            <span class="rule-label">≤ 2% negative</span>
+            <span class="rule-score green">+3</span>
+          </li>
+          <li id="rule-4">
+            <span class="rule-label">≤ 4% negative</span>
+            <span class="rule-score orange">+1</span>
+          </li>
+          <li id="rule-10">
+            <span class="rule-label">≤ 10% negative</span>
+            <span class="rule-score amber">-1</span>
+          </li>
+          <li id="rule-gt10">
+            <span class="rule-label">&gt; 10% negative</span>
+            <span class="rule-score red">-2</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const negInput   = document.getElementById('negCount');
+    const totalInput = document.getElementById('totalCount');
+    const pointsEl   = document.getElementById('pointsDisplay');
+    const gradeEl    = document.getElementById('gradeLabel');
+    const summaryEl  = document.getElementById('summaryText');
+
+    const ruleEls = {
+      r0:    document.getElementById('rule-0'),
+      r2:    document.getElementById('rule-2'),
+      r4:    document.getElementById('rule-4'),
+      r10:   document.getElementById('rule-10'),
+      rgt10: document.getElementById('rule-gt10')
+    };
+
+    function getGradeText(points){
+      if (points === 5)  return "Excellent";
+      if (points === 3)  return "Good";
+      if (points === 1)  return "Fair";
+      if (points === -1) return "Poor";
+      if (points === -2) return "Bad";
+      return "–";
+    }
+
+    function updateScore(){
+      const neg   = parseFloat(negInput.value);
+      const total = parseFloat(totalInput.value);
+
+      if (isNaN(neg) || isNaN(total) || total <= 0 || neg < 0) {
+        pointsEl.textContent = "0";
+        gradeEl.textContent  = "–";
+        summaryEl.textContent = "Negative Sentiment: 0.00%";
+        return;
+      }
+
+      const percent = (neg / total) * 100;
+      const percentRounded = Math.round(percent * 100) / 100;
+
+      let points;
+      if (percent === 0){
+        points = 5;
+      } else if (percent <= 2){
+        points = 3;
+      } else if (percent <= 4){
+        points = 1;
+      } else if (percent <= 10){
+        points = -1;
+      } else {
+        points = -2;
+      }
+
+      // Highlight active rule
+      Object.values(ruleEls).forEach(el => el.classList.remove('rule-active'));
+      if (percent === 0)       ruleEls.r0.classList.add('rule-active');
+      else if (percent <= 2)   ruleEls.r2.classList.add('rule-active');
+      else if (percent <= 4)   ruleEls.r4.classList.add('rule-active');
+      else if (percent <= 10)  ruleEls.r10.classList.add('rule-active');
+      else                     ruleEls.rgt10.classList.add('rule-active');
+
+      pointsEl.textContent = points;
+      gradeEl.textContent  = getGradeText(points);
+      summaryEl.textContent = `Negative Sentiment: ${percentRounded}%`;
+    }
+
+    negInput.addEventListener('input', updateScore);
+    totalInput.addEventListener('input', updateScore);
+
+    // initial compute
+    updateScore();
+  </script>
+</body>
+</html>

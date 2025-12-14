@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account</title>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body style="
+  margin:0;
+  padding:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif;
+  background-color:#ffffff;
+  color:#111827;
+">
+  <div style="
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding-top:60px;
+    padding-bottom:40px;
+  ">
+    <div style="
+      width:100%;
+      max-width:420px;
+      padding:32px 28px 28px;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      box-shadow:0 10px 25px rgba(15,23,42,0.06);
+    ">
+      <h1 style="
+        font-size:28px;
+        font-weight:600;
+        text-align:center;
+        margin-bottom:8px;
+      ">
+        Create account
+      </h1>
+
+      <p style="
+        text-align:center;
+        font-size:14px;
+        color:#6b7280;
+        margin-bottom:24px;
+      ">
+        Enter your details to get started
+      </p>
+
+      <!-- ERROR MESSAGE (from Flask) -->
+      {% if error %}
+      <p style="color:#dc2626;font-size:14px;margin-bottom:12px;text-align:center;">
+        {{ error }}
+      </p>
+      {% endif %}
+
+      <form id="registerForm" method="POST" action="{{ url_for('register') }}">
+        <!-- Username -->
+        <div style="margin-bottom:14px;">
+          <label for="username" style="
+            display:block;
+            font-size:14px;
+            font-weight:500;
+            color:#374151;
+            margin-bottom:6px;
+          ">Username</label>
+          <input id="username" name="username" type="text" placeholder="johndoe" style="
+            width:100%;
+            padding:10px 12px;
+            border-radius:6px;
+            border:1px solid #d1d5db;
+            font-size:14px;
+            outline:none;
+            box-sizing:border-box;
+          ">
+        </div>
+
+        <!-- Email -->
+        <div style="margin-bottom:14px;">
+          <label for="email" style="
+            display:block;
+            font-size:14px;
+            font-weight:500;
+            color:#374151;
+            margin-bottom:6px;
+          ">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" style="
+            width:100%;
+            padding:10px 12px;
+            border-radius:6px;
+            border:1px solid #d1d5db;
+            font-size:14px;
+            outline:none;
+            box-sizing:border-box;
+          ">
+        </div>
+
+        <!-- Password -->
+        <div style="margin-bottom:14px;">
+          <label for="password" style="
+            display:block;
+            font-size:14px;
+            font-weight:500;
+            color:#374151;
+            margin-bottom:6px;
+          ">Password</label>
+
+          <div style="position:relative;width:100%;">
+            <input id="password" name="password" type="password" placeholder="••••••••" style="
+              width:100%;
+              padding:10px 40px 10px 12px;
+              border-radius:6px;
+              border:1px solid #d1d5db;
+              font-size:14px;
+              outline:none;
+              box-sizing:border-box;
+            ">
+            <span id="togglePwd" style="
+              position:absolute;
+              right:12px;
+              top:50%;
+              transform:translateY(-50%);
+              cursor:pointer;
+              color:#9ca3af;
+              font-size:14px;
+            ">
+              <i class="fa-regular fa-eye"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div style="margin-bottom:6px;">
+          <label for="confirm_password" style="
+            display:block;
+            font-size:14px;
+            font-weight:500;
+            color:#374151;
+            margin-bottom:6px;
+          ">Confirm Password</label>
+
+          <div style="position:relative;width:100%;">
+            <input id="confirm_password" name="confirm_password" type="password" placeholder="••••••••" style="
+              width:100%;
+              padding:10px 40px 10px 12px;
+              border-radius:6px;
+              border:1px solid #d1d5db;
+              font-size:14px;
+              outline:none;
+              box-sizing:border-box;
+            ">
+            <span id="toggleConfirm" style="
+              position:absolute;
+              right:12px;
+              top:50%;
+              transform:translateY(-50%);
+              cursor:pointer;
+              color:#9ca3af;
+              font-size:14px;
+            ">
+              <i class="fa-regular fa-eye"></i>
+            </span>
+          </div>
+        </div>
+
+        <p id="pwdError" style="
+          margin:0 0 14px 0;
+          font-size:13px;
+          color:#dc2626;
+          display:none;
+        ">
+          Passwords do not match.
+        </p>
+
+        <button id="submitBtn" type="submit" style="
+          width:100%;
+          padding:10px 16px;
+          border-radius:6px;
+          border:none;
+          background-color:#111827;
+          color:#ffffff;
+          font-size:15px;
+          font-weight:500;
+          cursor:pointer;
+        ">
+          Create account
+        </button>
+      </form>
+
+      <p style="
+        margin-top:20px;
+        text-align:center;
+        font-size:14px;
+        color:#6b7280;
+      ">
+        Already have an account?
+        <a href="{{ url_for('login') }}" style="color:#111827;text-decoration:none;font-weight:500;">
+          Sign in
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const pwd = document.getElementById('password');
+    const cpwd = document.getElementById('confirm_password');
+    const errorText = document.getElementById('pwdError');
+
+    form.addEventListener('submit', function (e) {
+      if (pwd.value !== cpwd.value) {
+        e.preventDefault();
+        errorText.style.display = 'block';
+        cpwd.style.borderColor = '#dc2626';
+        pwd.style.borderColor = '#dc2626';
+      } else {
+        errorText.style.display = 'none';
+        cpwd.style.borderColor = '#d1d5db';
+        pwd.style.borderColor = '#d1d5db';
+      }
+    });
+
+    function toggleVisibility(inputEl, iconSpan) {
+      if (inputEl.type === 'password') {
+        inputEl.type = 'text';
+        iconSpan.firstElementChild.classList.remove('fa-eye');
+        iconSpan.firstElementChild.classList.add('fa-eye-slash');
+      } else {
+        inputEl.type = 'password';
+        iconSpan.firstElementChild.classList.remove('fa-eye-slash');
+        iconSpan.firstElementChild.classList.add('fa-eye');
+      }
+    }
+
+    document.getElementById('togglePwd')
+      .addEventListener('click', function () {
+        toggleVisibility(pwd, this);
+      });
+
+    document.getElementById('toggleConfirm')
+      .addEventListener('click', function () {
+        toggleVisibility(cpwd, this);
+      });
+  </script>
+</body>
+</html>

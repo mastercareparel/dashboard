@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dealer Visit Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:"Poppins",sans-serif;
+    }
+    body{
+      min-height:100vh;
+      background:#f7f0ff;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:30px 10px;
+      color:#2b2340;
+    }
+    .page{
+      width:100%;
+      max-width:1080px;
+    }
+
+    .top-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    .visited-count{
+      font-size:18px;
+      font-weight:600;
+      color:#5c3ea6;
+    }
+    .visited-count span{
+      font-size:14px;
+      color:#a293d6;
+      margin-left:4px;
+    }
+    .reset-btn{
+      border-radius:20px;
+      border:1px solid #e1d5ff;
+      background:#fff;
+      padding:6px 14px;
+      font-size:12px;
+      color:#7b67c4;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .header{
+      text-align:center;
+      margin-bottom:18px;
+    }
+    .header h1{
+      font-size:24px;
+      font-weight:700;
+      color:#35215c;
+    }
+    .header p{
+      font-size:13px;
+      color:#8b7bb6;
+      margin-top:4px;
+    }
+
+    .card{
+      background:#ffffff;
+      border-radius:16px;
+      padding:20px 22px 22px;
+      box-shadow:0 14px 32px rgba(130,90,200,0.15);
+      margin-bottom:18px;
+    }
+
+    .score-ring{
+      width:190px;
+      height:190px;
+      margin:0 auto 8px;
+      border-radius:50%;
+      background:#fde7e7;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .score-inner{
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      border:10px solid #f5cccc;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:#e14242;
+      text-align:center;
+    }
+    .score-inner h2{
+      font-size:40px;
+      font-weight:700;
+      line-height:1;
+    }
+    .score-inner span{
+      display:block;
+      font-size:12px;
+      margin-top:4px;
+    }
+    .score-label{
+      text-align:center;
+      font-size:18px;
+      font-weight:600;
+      color:#d63333;
+      margin-top:6px;
+    }
+    .score-info{
+      text-align:center;
+      font-size:13px;
+      color:#8f7fba;
+      margin-top:4px;
+    }
+
+    .progress-wrapper{
+      margin-top:14px;
+    }
+    .progress-header{
+      display:flex;
+      justify-content:space-between;
+      font-size:13px;
+      color:#4b3a71;
+      margin-bottom:6px;
+    }
+    .progress-bar{
+      width:100%;
+      height:10px;
+      border-radius:999px;
+      background:#efe7ff;
+      overflow:hidden;
+      position:relative;
+    }
+    .progress-fill{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#f97373,#facc15,#22c55e);
+      border-radius:999px;
+      transition:width .25s ease;
+    }
+    .progress-milestones{
+      display:flex;
+      justify-content:space-between;
+      font-size:11px;
+      color:#a193d9;
+      margin-top:4px;
+    }
+
+    .dealers-header{
+      font-size:15px;
+      font-weight:600;
+      color:#3b285f;
+      margin-bottom:10px;
+    }
+    .dealers-header span{
+      font-size:13px;
+      color:#9a8dcd;
+      margin-left:4px;
+      font-weight:400;
+    }
+    .dealers-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+    .dealer-item{
+      border-radius:12px;
+      border:1px solid #e3d8ff;
+      padding:10px 12px;
+      background:#ffffff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      cursor:pointer;
+      transition:background .15s,border-color .15s,box-shadow .15s;
+    }
+    .dealer-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .radio-outer{
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      border:2px solid #c3a9ff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .radio-inner{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:transparent;
+      transition:background .15s;
+    }
+    .dealer-name{
+      font-size:13px;
+      color:#4b3a71;
+    }
+    .status-dot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:#d7cfff;
+    }
+    .dealer-item.visited{
+      background:#f4ecff;
+      border-color:#b493ff;
+      box-shadow:0 4px 16px rgba(148,112,255,0.25);
+    }
+    .dealer-item.visited .radio-inner{
+      background:#7c4dff;
+    }
+    .dealer-item.visited .status-dot{
+      background:#7c4dff;
+    }
+
+    .rules-title{
+      font-size:14px;
+      font-weight:600;
+      color:#3a285f;
+      margin-bottom:8px;
+    }
+    .rules-list{
+      list-style:none;
+      font-size:12px;
+    }
+    .rules-list li{
+      display:flex;
+      justify-content:space-between;
+      padding:4px 0;
+    }
+    .rule-label{
+      color:#4b3a71;
+    }
+    .rule-score{
+      font-weight:600;
+    }
+    .rule-score.good{color:#16a34a;}
+    .rule-score.mid{color:#f97316;}
+    .rule-score.bad{color:#dc2626;}
+    .rule-active{
+      background:#f4ecff;
+      border-radius:10px;
+      padding:4px 8px;
+    }
+
+    @media (max-width:800px){
+      .dealers-grid{
+        grid-template-columns:1fr;
+      }
+      .card{
+        padding:16px 14px 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top-bar">
+      <div class="visited-count">
+        <span id="visitedText">0 / 34</span>
+        <span>Visited</span>
+      </div>
+      <button id="resetBtn" class="reset-btn">↻ Reset</button>
+    </div>
+
+    <div class="header">
+      <h1>Dealer Visit Tracker</h1>
+      <p>Score based on 16 required visits</p>
+    </div>
+
+    <!-- Score + progress card -->
+    <div class="card">
+      <div class="score-ring">
+        <div class="score-inner">
+          <div>
+            <h2 id="marksDisplay">0</h2>
+            <span>marks</span>
+          </div>
+        </div>
+      </div>
+      <div id="gradeLabel" class="score-label">–</div>
+      <div id="percentText" class="score-info">0.0% of 16 visited</div>
+
+      <div class="progress-wrapper">
+        <div class="progress-header">
+          <span>Visit Progress (out of 16)</span>
+          <span id="progressRight">0.0%</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div class="progress-milestones">
+          <span>0%</span>
+          <span>80%</span>
+          <span>90%</span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="rules-title">Scoring Rules</div>
+        <ul id="rulesList" class="rules-list">
+          <li id="rule-high">
+            <span class="rule-label">≥ 90% of 16</span>
+            <span class="rule-score good">0 marks</span>
+          </li>
+          <li id="rule-mid">
+            <span class="rule-label">≥ 80% and &lt; 90%</span>
+            <span class="rule-score mid">-1 mark</span>
+          </li>
+          <li id="rule-low">
+            <span class="rule-label">&lt; 80%</span>
+            <span class="rule-score bad">-2 marks</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Dealers card -->
+    <div class="card">
+      <div class="dealers-header">Dealers <span id="dealersVisitedText">(0 visited)</span></div>
+      <div id="dealersGrid" class="dealers-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL_DEALERS = 34;   // total dealers in list
+    const TARGET_VISITS = 16;   // only these needed for percentage
+
+    // Put your 34 dealer names here
+    const DEALER_NAMES = [
+      "Salva Telecom Dahisar","Hari om Mobile (Borival(W))","Top Corner Borivali (E)",
+      "Hari Om colection(Dahisar(E))","New Durga NX Mobile Shop","Anupam Mega Store(Borivali(W))",
+      "Top-10 (Dahisar East)","Om Mobile Hub (Borivali(W))","Vardhaman Mobile Borivali",
+      "Shree Mobile center","Mahavir Collection Borivali","Anita Digital Express",
+      "Anupam-superstore Mobile(Borivali W)","selection ELectronics Dahisar(E)","J.B.Telecom (Dahisar)",
+      "GuruKripa Cell Point Borivali(E)","Shree Jalaram Mobile Borivali(W)","Hari Vandan Mobiles (Borivali(W))",
+      "Mittal Collection(Kandivali(E))","Anupam Stationary Superstore Pvt.Ltd.-Borivali",
+      "Anupam superstore-Mobile NX(Borivali w)","New Star Electronics (Dahisar east)","Vardhaman Mobile(Dahisar)",
+      "Salva NX Dahisar","Kum Kum Collection Borivali","Femina Telecom(Borivali West)","Vishal The Hub",
+      "Croma Oberoi Mall","Dahisar Mobile","Maxell Borivali","New United Mobile and Electronic",
+      "Grevity Electronic(dahisar(E))","Ankita Digital Express","Hari om Infotech(Borivali(East))"
+    ];
+
+    const dealersGrid = document.getElementById('dealersGrid');
+    const visitedText = document.getElementById('visitedText');
+    const dealersVisitedText = document.getElementById('dealersVisitedText');
+    const marksDisplay = document.getElementById('marksDisplay');
+    const gradeLabel = document.getElementById('gradeLabel');
+    const percentText = document.getElementById('percentText');
+    const progressFill = document.getElementById('progressFill');
+    const progressRight = document.getElementById('progressRight');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const ruleHigh = document.getElementById('rule-high');
+    const ruleMid  = document.getElementById('rule-mid');
+    const ruleLow  = document.getElementById('rule-low');
+
+    let visited = new Array(TOTAL_DEALERS).fill(false);
+
+    function buildDealers(){
+      dealersGrid.innerHTML = "";
+      for(let i=0;i<TOTAL_DEALERS;i++){
+        const card = document.createElement('div');
+        card.className = 'dealer-item';
+        card.dataset.index = i;
+
+        const left = document.createElement('div');
+        left.className = 'dealer-left';
+
+        const radioOuter = document.createElement('div');
+        radioOuter.className = 'radio-outer';
+        const radioInner = document.createElement('div');
+        radioInner.className = 'radio-inner';
+        radioOuter.appendChild(radioInner);
+
+        const name = document.createElement('div');
+        name.className = 'dealer-name';
+        name.textContent = DEALER_NAMES[i] || `Dealer ${i+1}`;
+
+        left.appendChild(radioOuter);
+        left.appendChild(name);
+
+        const dot = document.createElement('div');
+        dot.className = 'status-dot';
+
+        card.appendChild(left);
+        card.appendChild(dot);
+
+        card.addEventListener('click', ()=>toggleDealer(i,card));
+
+        dealersGrid.appendChild(card);
+      }
+    }
+
+    function toggleDealer(index, cardEl){
+      visited[index] = !visited[index];
+      cardEl.classList.toggle('visited', visited[index]);
+      updateStats();
+    }
+
+    function getGrade(marks){
+      if(marks === 0)  return "On Track";
+      if(marks === -1) return "Needs Attention";
+      if(marks === -2) return "Needs Improvement";
+      return "–";
+    }
+
+    function updateStats(){
+      const visitedCount = visited.filter(v=>v).length;
+
+      // percentage only on 16 required dealers
+      const percent = (visitedCount / TARGET_VISITS) * 100;
+      const percentRounded = Math.round(percent * 10)/10;
+
+      let marks;
+      if(percent >= 90){
+        marks = 0;
+      }else if(percent >= 80){
+        marks = -1;
+      }else{
+        marks = -2;
+      }
+
+      visitedText.textContent = `${visitedCount} / ${TOTAL_DEALERS}`;
+      dealersVisitedText.textContent = `(${visitedCount} visited)`;
+      marksDisplay.textContent = marks;
+      gradeLabel.textContent = getGrade(marks);
+      percentText.textContent = `${percentRounded}% of ${TARGET_VISITS} visited`;
+      progressRight.textContent = `${percentRounded}%`;
+      progressFill.style.width = `${Math.min(Math.max(percent,0),100)}%`;
+
+      [ruleHigh,ruleMid,ruleLow].forEach(r=>r.classList.remove('rule-active'));
+      if(percent >= 90)      ruleHigh.classList.add('rule-active');
+      else if(percent >=80)  ruleMid.classList.add('rule-active');
+      else                   ruleLow.classList.add('rule-active');
+    }
+
+    resetBtn.addEventListener('click', ()=>{
+      visited.fill(false);
+      document.querySelectorAll('.dealer-item').forEach(el=>{
+        el.classList.remove('visited');
+      });
+      updateStats();
+    });
+
+    buildDealers();
+    updateStats();
+  </script>
+</body>
+</html>

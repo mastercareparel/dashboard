@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Credit Block Cases</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-main: #f5f0ff;
+      --bg-card: #ffffff;
+      --bg-card-soft: #f7f3ff;
+      --accent: #7c3aed;
+      --accent-soft: #a855f7;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --muted: #6b7280;
+      --text-main: #111827;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top, #f9f4ff 0%, #f5f0ff 45%, #ede7ff 100%);
+      color: var(--text-main);
+    }
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 18px 40px;
+    }
+    header { text-align: center; margin-bottom: 24px; }
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: 0.03em;
+      color: #1f2933;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      margin: 8px auto 0;
+      max-width: 640px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .pill-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #ecfdf3;
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+    .pill-status.danger {
+      background: #fef2f2;
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 26px;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 18px 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 10px 26px rgba(148, 163, 184, 0.18);
+    }
+    .card-soft { background: var(--bg-card-soft); }
+
+    .card-title {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title span.icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      background: #ede9fe;
+      color: var(--accent);
+    }
+    .metric-main {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #111827;
+    }
+    .metric-main span.currency {
+      font-size: 16px;
+      opacity: 0.8;
+      margin-right: 4px;
+    }
+    .metric-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .metric-sub strong { color: var(--accent); }
+    .metric-sub.danger strong { color: var(--danger); }
+    .metric-sub.success strong { color: var(--success); }
+
+    .input-row { margin-top: 8px; }
+    .input-row label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .input-row input {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid #d4d4dd;
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .input-row input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px #c4b5fd;
+    }
+    .helper-text {
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .helper-text span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .footer-note span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .grid-main { grid-template-columns: 1fr; }
+      header h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Credit <span>Block Cases</span></h1>
+      <p>
+        Track your company credit usage. You can safely consume up to
+        <strong>95% of the total limit</strong>; going above this threshold leads to a
+        credit block.
+      </p>
+      <div id="pillStatus" class="pill-status">
+        <span class="pill-dot"></span>
+        <span id="pillText">Within 95% Safe Zone</span>
+      </div>
+    </header>
+
+    <section class="grid-main">
+      <!-- Total limit -->
+      <article class="card">
+        <div class="card-title">
+          <div>Total Credit Limit</div>
+          <span class="icon">₱</span>
+        </div>
+        <div class="metric-main">
+          <span class="currency">₱</span><span id="totalLimit">8,712,000</span>
+        </div>
+        <div class="metric-sub">Company allocation</div>
+      </article>
+
+      <!-- 95% safe limit -->
+      <article class="card">
+        <div class="card-title">
+          <div>95% Consumption Limit</div>
+          <span class="icon">95%</span>
+        </div>
+        <div class="metric-main">
+          <span class="currency">₱</span><span id="safeLimit">8,276,400</span>
+        </div>
+        <div class="metric-sub success">
+          You must stay at or below <strong>95% of total limit</strong>.
+        </div>
+      </article>
+
+      <!-- Currently consumed -->
+      <article class="card card-soft">
+        <div class="card-title">
+          <div>Currently Consumed</div>
+          <span class="icon">↗</span>
+        </div>
+        <div class="metric-main">
+          <span class="currency">₱</span><span id="consumedDisplay">0</span>
+        </div>
+        <div class="metric-sub">
+          <strong id="usedPctText">0.00%</strong> of total limit used.
+        </div>
+
+        <div class="input-row">
+          <label for="consumedInput">Enter current consumed amount</label>
+          <input
+            id="consumedInput"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="e.g., 5000000"
+          />
+          <div class="helper-text">
+            Credit block happens when usage is <span>more than 95%</span> of
+            ₱8,712,000.
+          </div>
+        </div>
+      </article>
+
+      <!-- Remaining before 95% / block status -->
+      <article class="card card-soft">
+        <div class="card-title">
+          <div>Remaining Before 95%</div>
+          <span class="icon">⏱</span>
+        </div>
+        <div class="metric-main">
+          <span class="currency">₱</span><span id="safeRemaining">8,276,400</span>
+        </div>
+        <div class="metric-sub danger" id="statusLine">
+          Amount you can still consume <strong>before crossing 95%</strong>.
+        </div>
+      </article>
+    </section>
+
+    <p class="footer-note">
+      Rule: If total consumed &gt; <span>95%</span> of ₱8,712,000, the account enters a
+      credit‑block condition.
+    </p>
+  </div>
+
+  <script>
+    const LIMIT = 8712000;          // total credit limit
+    const SAFE_PERCENT = 0.95;      // can use 95% max
+    const SAFE_LIMIT = LIMIT * SAFE_PERCENT;
+
+    const totalLimitEl = document.getElementById('totalLimit');
+    const safeLimitEl = document.getElementById('safeLimit');
+    const consumedDisplayEl = document.getElementById('consumedDisplay');
+    const usedPctTextEl = document.getElementById('usedPctText');
+    const safeRemainingEl = document.getElementById('safeRemaining');
+    const consumedInputEl = document.getElementById('consumedInput');
+
+    const pillStatusEl = document.getElementById('pillStatus');
+    const pillTextEl = document.getElementById('pillText');
+    const statusLineEl = document.getElementById('statusLine');
+
+    function formatNumber(n) {
+      return n.toLocaleString('en-IN');
+    }
+
+    function updateDashboard(consumedRaw) {
+      let consumed = Number(consumedRaw);
+      if (isNaN(consumed) || consumed < 0) consumed = 0;
+
+      const usedPct = (consumed / LIMIT) * 100;
+      const remainingTo95 = SAFE_LIMIT - consumed;
+
+      consumedDisplayEl.textContent = formatNumber(consumed);
+      usedPctTextEl.textContent = usedPct.toFixed(2) + '%';
+
+      safeRemainingEl.textContent = formatNumber(Math.max(remainingTo95, 0));
+
+      if (consumed <= SAFE_LIMIT) {
+        pillStatusEl.classList.remove('danger');
+        pillTextEl.textContent = 'Within 95% Safe Zone';
+        statusLineEl.innerHTML =
+          'Amount you can still consume <strong>before crossing 95%</strong>.';
+      } else {
+        pillStatusEl.classList.add('danger');
+        pillTextEl.textContent = 'Above 95% - Credit Block Risk';
+        statusLineEl.innerHTML =
+          'Usage is <strong>above 95%</strong>. Reduce outstanding amount to exit credit‑block risk.';
+      }
+    }
+
+    totalLimitEl.textContent = formatNumber(LIMIT);
+    safeLimitEl.textContent = formatNumber(SAFE_LIMIT);
+    updateDashboard(0);
+
+    consumedInputEl.addEventListener('input', (e) => {
+      updateDashboard(e.target.value);
+    });
+  </script>
+</body>
+</html>

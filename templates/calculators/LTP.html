@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EX-LTP Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #f5f4ff; --card: #fff; --accent: #6b57ff; --muted: #7a6ea3;
+      --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+    }
+    body { margin: 0; font-family: "Poppins", sans-serif; background: var(--bg); color: #232034; padding: 28px; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    h1 { margin: 12px 0 0; font-size: 32px; color: #2b1d52; font-weight: 700 }
+    p.lead { margin: 6px 0 22px; color: var(--muted); font-size: 17px;}
+    .nav {margin-bottom:32px; display: flex; gap: 20px; flex-wrap:wrap;}
+    .nav-btn {padding:10px 28px; border-radius:10px; border:0; background:var(--accent); color:white; font-weight:600; font-size:17px; cursor:pointer; transition:.15s}
+    .nav-btn.active {background:var(--success);}
+    .card { background: var(--card); border-radius: 16px; padding: 36px 28px; box-shadow: 0 8px 32px rgba(56,40,120,0.09);}
+    .card.compact {padding:24px;}
+    .top-stats-title { font-weight: 700; color: #2b1d52; margin-bottom: 22px; font-size: 20px;}
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; margin-bottom: 24px;}
+    .stat-item { background: #fbfaff; padding: 20px 12px; border-radius: 10px; border: 1px solid #ebe5fa; text-align: center; }
+    .stat-label { font-size: 14px; color: var(--muted); margin-bottom: 6px;}
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--accent);}
+    .stat-value.success { color: var(--success);}
+    .stat-value.warning { color: var(--warning);}
+    .stat-value.danger { color: var(--danger);}
+    .btn-row { display: flex; gap: 14px; margin: 12px 0 0 0; flex-wrap: wrap;}
+    .btn { display: inline-block; padding: 12px 24px; border-radius: 10px; border: 0; color: #fff; background: var(--accent); cursor: pointer; font-weight: 700; font-size: 15px; }
+    .btn.secondary { background: var(--danger);}
+    .btn:disabled { background: #a0a0a0; cursor: not-allowed;}
+    #registerPage .card {max-width:540px;margin:0 auto;}
+    .section-title { font-weight: 700; color: #2b1d52; margin-bottom: 14px; font-size:20px;text-align:center;}
+    form#exltpForm {display: flex; flex-direction: column; gap: 18px;}
+    .form-btns {display:flex;gap:12px;margin-bottom:2px;}
+    .form-btns .btn, .form-btns .btn.secondary {flex: 1;min-width:120px;}
+    label { font-size: 14px; color: #3b3865; margin-bottom:6px; font-weight:600;}
+    input[type="text"], input[type="date"], input[type="time"], input[type="number"]{
+      width:100%; padding:12px;border-radius:10px; border:1px solid #e6e0ff; font-size: 16px; background: #fff; box-sizing:border-box;
+    }
+    .row {display: grid; grid-template-columns: 1fr 1fr; gap: 18px;}
+    .error-msg { color: var(--danger); font-size: 13px; margin-top: 5px; display: none;}
+    .filter-section { margin: 12px 0; padding: 13px; background: #f0f0ff; border-radius: 10px;}
+    .filter-section label { font-size: 13px; font-weight:600;}
+    .filter-row { display: flex; gap: 10px; margin-top: 6px; }
+    .filter-row input { flex: 1; padding: 9px; font-size:15px; border-radius:8px; border:1px solid #d3cbe9;}
+    .filter-row .btn { padding: 8px 22px; font-size: 15px;}
+    table { width: 100%; border-collapse: collapse; margin-top: 18px;}
+    th, td { padding: 12px 10px; border-bottom: 1px solid #ede8fa; text-align: left; font-size: 15px;}
+    .actions { display: flex; gap: 8px; justify-content: flex-start; white-space: nowrap;}
+    .small-btn { padding: 6px 14px; border-radius:8px;border:0; font-size: 14px;font-weight:600;min-width:50px; cursor:pointer;}
+    .edit { background: #007bff; color: white;}
+    .delete { background: var(--danger); color: white;}
+    .status-badge { padding: 4.5px 14px; border-radius: 14px; font-size: 13px; font-weight: 700;}
+    .status-badge.ltp { background: #fef3c7; color: var(--warning); }
+    .status-badge.ex-ltp { background: #fee2e2; color: var(--danger);}
+    .status-badge.normal { background: #d1fae5; color: var(--success);}
+    .muted { color: #8c84a8; font-size: 13px;}
+    .percent-layout {max-width:520px;margin:0 auto;}
+    .percent-row {display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .percent-output {margin-top:6px;font-size:15px;color:#3b3865;}
+    @media (max-width:750px){
+      .wrap{padding:12px}
+      .stats{grid-template-columns:1fr;}
+      .btn-row,.filter-row,.form-btns{flex-direction:column;gap:10px;}
+      .row,.percent-row{grid-template-columns:1fr;}
+    }
+    @media (max-width:650px){ #registerPage .row{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>EX-LTP Tracker</h1>
+    <p class="lead">Local data only. LTP ≥3 days ≤7, EX-LTP >7 days. Tracks % & scores for LTP/EX-LTP + new 2hr Max metric.</p>
+
+    <div class="nav">
+      <button class="nav-btn active" id="dashNavBtn">Dashboard</button>
+      <button class="nav-btn" id="historyNavBtn">History</button>
+      <button class="nav-btn" id="registerNavBtn">Register</button>
+      <button class="nav-btn" id="percentNavBtn">Percentage</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboardPage">
+      <div style="margin-bottom:22px;display:flex;align-items:center;gap:17px;">
+        <label for="filterDate" style="font-weight:600;">View stats for Date:</label>
+        <input type="date" id="filterDate" style="padding:10px 14px;border-radius:8px;border:1px solid #e3dcff;">
+        <button class="btn" style="padding:8px 20px;" onclick="searchDashboard()">Search</button>
+        <button class="btn" style="padding:8px 20px;background:var(--success);" onclick="refreshDashboard()">Refresh</button>
+
+      </div>
+      <div class="card compact">
+        <div class="top-stats-title">Performance Stats</div>
+        <div class="stats">
+          <div class="stat-item"><div class="stat-label">Total Calls</div><div class="stat-value" id="totalCalls">0</div></div>
+          <div class="stat-item"><div class="stat-label">LTP Calls</div><div class="stat-value warning" id="ltpCalls">0</div></div>
+          <div class="stat-item"><div class="stat-label">EX-LTP Calls</div><div class="stat-value danger" id="exltpCalls">0</div></div>
+          <div class="stat-item"><div class="stat-label">LTP %</div><div class="stat-value success" id="ltpPercentage">0%</div></div>
+          <div class="stat-item"><div class="stat-label">EX-LTP %</div><div class="stat-value success" id="exltpPercentage">0%</div></div>
+          <div class="stat-item"><div class="stat-label">LTP Score</div><div class="stat-value success" id="ltpScore">0</div></div>
+          <div class="stat-item"><div class="stat-label">EX-LTP Score</div><div class="stat-value success" id="exltpScore">0</div></div>
+          <div class="stat-item"><div class="stat-label">Overall Score</div><div class="stat-value success" id="overallScore">0</div></div>
+          <div class="stat-item"><div class="stat-label">2-HR Success</div><div class="stat-value success" id="twoHrCount">0</div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="exportToCsv()" style="background:var(--success);">Export CSV</button>
+          <button class="btn secondary" onclick="resetAll()">Reset All Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="historyPage" style="display:none">
+      <div class="card compact">
+        <div class="section-title" style="text-align:left;">Call History</div>
+        <div class="filter-section">
+          <label>Quick Filter (Date Reg):</label>
+          <div class="filter-row">
+            <input id="quickFrom" type="date">
+            <input id="quickTo" type="date">
+            <button class="btn" onclick="applyQuickFilter()">Filter</button>
+            <button class="btn" id="refreshHistoryBtn" style="background:var(--success);margin-left:2px;">Refresh</button>
+          </div>
+        </div>
+        <table id="recordsTable">
+          <thead>
+            <tr>
+              <th>Service No</th>
+              <th>Date Reg</th>
+              <th>Date Close</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th>Hours Diff</th>
+              <th>Within 2hr?</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerPage" style="display:none">
+      <div class="card input-card" style="max-width:540px;margin:0 auto;box-shadow:0 8px 32px rgba(56,40,120,0.10);padding:36px 28px;">
+        <div class="section-title">Register New Call</div>
+        <form id="exltpForm" autocomplete="off">
+          <div class="form-btns">
+            <button class="btn" id="submitBtn" type="submit">Submit Call</button>
+            <button class="btn secondary" id="resetBtn" type="button">Reset Form</button>
+          </div>
+          <div>
+            <label for="serviceNo">Service Number</label>
+            <input id="serviceNo" type="text" placeholder="e.g., 5094399" required>
+            <div id="serviceNoError" class="error-msg"></div>
+          </div>
+          <div class="row" style="gap:18px;margin-bottom:0;">
+            <div>
+              <label for="dateReg">Date Registered</label>
+              <input id="dateReg" type="date" required>
+              <div id="dateRegError" class="error-msg"></div>
+            </div>
+            <div>
+              <label for="dateClose">Date Closed (optional)</label>
+              <input id="dateClose" type="date">
+              <div id="dateCloseError" class="error-msg"></div>
+            </div>
+          </div>
+          <div class="row" style="gap:18px; margin-top:18px;">
+            <div>
+              <label for="startTime">Start Time (optional)</label>
+              <input type="time" id="startTime">
+            </div>
+            <div>
+              <label for="endTime">End Time (optional)</label>
+              <input type="time" id="endTime">
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- PERCENTAGE PAGE -->
+    <div id="percentagePage" style="display:none">
+      <div class="card compact percent-layout">
+        <div class="section-title">Direct Percentage Calculator</div>
+        <div class="muted" style="text-align:center;margin-bottom:10px;">
+          Target 1.2%, Lower Limit 2.0%, Weight 10 marks. Smaller % is better.
+        </div>
+        <div class="percent-row">
+          <div>
+            <label for="directLtp">LTP Percentage (%)</label>
+            <input type="number" step="0.01" id="directLtp" placeholder="e.g., 1.5">
+          </div>
+          <div>
+            <label for="directExltp">EX-LTP Percentage (%)</label>
+            <input type="number" step="0.01" id="directExltp" placeholder="e.g., 1.8">
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:16px;justify-content:flex-end;">
+          <button class="btn" id="calcPercentBtn">Calculate Score</button>
+        </div>
+
+        <div class="percent-output" id="directLtpScore">LTP Score: 0.00 / 10</div>
+        <div class="percent-output" id="directExltpScore">EX-LTP Score: 0.00 / 10</div>
+        <div class="percent-output" id="directOverallScore" style="margin-top:6px;font-weight:700;">
+          Overall Score (30% LTP + 70% EX-LTP): 0.00 / 10
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  let editingRecordId = null;   // DB id for editing
+
+  const dashBtn    = document.getElementById('dashNavBtn'),
+        histBtn    = document.getElementById('historyNavBtn'),
+        regBtn     = document.getElementById('registerNavBtn'),
+        percentBtn = document.getElementById('percentNavBtn');
+
+  dashBtn.onclick    = () => setPage('dashboard');
+  histBtn.onclick    = () => setPage('history');
+  regBtn.onclick     = () => setPage('register');
+  percentBtn.onclick = () => setPage('percentage');
+
+  function setPage(page) {
+    document.getElementById('dashboardPage').style.display   = page === 'dashboard'  ? '' : 'none';
+    document.getElementById('historyPage').style.display     = page === 'history'    ? '' : 'none';
+    document.getElementById('registerPage').style.display    = page === 'register'   ? '' : 'none';
+    document.getElementById('percentagePage').style.display  = page === 'percentage' ? '' : 'none';
+
+    dashBtn.classList.toggle('active', page === 'dashboard');
+    histBtn.classList.toggle('active', page === 'history');
+    regBtn.classList.toggle('active', page === 'register');
+    percentBtn.classList.toggle('active', page === 'percentage');
+
+    if (page === 'history')   fetchAndRenderHistory();
+    if (page === 'dashboard') fetchAndUpdateStats();
+  }
+
+  // -------- FORM SUBMIT (CREATE / UPDATE) --------
+
+  document.getElementById('exltpForm').onsubmit = async function (e) {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const serviceNo = document.getElementById('serviceNo').value.trim(),
+          dateReg   = document.getElementById('dateReg').value,
+          dateClose = document.getElementById('dateClose').value,
+          startTime = document.getElementById('startTime').value,
+          endTime   = document.getElementById('endTime').value,
+          days      = calcDiff(dateReg, dateClose),
+          hoursDiff = calculateHoursDifference(startTime, endTime),
+          isTwoHr   = (startTime && endTime && hoursDiff <= 2) ? 'Yes' : 'No';
+
+    let status = 'Normal';
+    if (days >= 7)      status = 'EX-LTP';
+    else if (days >= 3) status = 'LTP';
+
+    const payload = {
+      service_no: serviceNo,
+      date_reg:   dateReg,
+      date_close: dateClose || null,
+      days:       days,
+      status:     status,
+      hours_diff: dateClose ? hoursDiff : null,
+      within_2hr: dateClose ? isTwoHr : '-'
+    };
+
+    try {
+      let url, method;
+      if (editingRecordId) {
+        url    = `/ltp-edit/${editingRecordId}`;
+        method = 'PUT';
+      } else {
+        url    = '/ltp-save';
+        method = 'POST';
+      }
+
+      const res  = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        alert('Saved to database');
+        resetForm();
+        fetchAndRenderHistory();
+        fetchAndUpdateStats();
+      } else {
+        alert('Error: ' + (data.message || 'Unknown'));
+      }
+    } catch (err) {
+      console.log(err);
+      alert('Network error');
+    }
+  };
+
+  document.getElementById('resetBtn').onclick = resetForm;
+
+  function resetForm() {
+    document.getElementById('exltpForm').reset();
+    editingRecordId = null;
+    document.getElementById('submitBtn').textContent = 'Submit Call';
+    document.querySelectorAll('.error-msg').forEach(el => {
+      el.style.display = 'none';
+      el.textContent = '';
+    });
+  }
+
+  // -------- VALIDATION + HELPERS --------
+
+  function validateForm() {
+    let valid = true;
+    document.querySelectorAll('.error-msg').forEach(el => {
+      el.style.display = 'none';
+      el.textContent = '';
+    });
+
+    const serviceNo = document.getElementById('serviceNo').value.trim(),
+          dateReg   = document.getElementById('dateReg').value,
+          dateClose = document.getElementById('dateClose').value;
+
+    if (!serviceNo) {
+      valid = false;
+      const e = document.getElementById('serviceNoError');
+      e.textContent = 'Required';
+      e.style.display = 'block';
+    }
+    if (!dateReg) {
+      valid = false;
+      const e = document.getElementById('dateRegError');
+      e.textContent = 'Required';
+      e.style.display = 'block';
+    }
+
+    if (dateReg && dateClose && new Date(dateClose) < new Date(dateReg)) {
+      valid = false;
+      const el = document.getElementById('dateCloseError');
+      el.textContent = 'After Reg date';
+      el.style.display = 'block';
+    }
+    return valid;
+  }
+
+  function calcDiff(regStr, closeStr) {
+    if (!regStr || !closeStr) return 0;
+    const reg   = new Date(regStr + 'T00:00:00'),
+          close = new Date(closeStr + 'T00:00:00');
+    if (isNaN(reg.getTime()) || isNaN(close.getTime())) return 0;
+    return Math.floor((close - reg) / (1000 * 60 * 60 * 24));
+  }
+  function searchDashboard() {
+    // sirf current selected date ke basis par stats dikhayega
+    fetchAndUpdateStats();
+  }
+
+  function refreshDashboard() {
+  const filterDateEl = document.getElementById('filterDate');
+  if (filterDateEl) filterDateEl.value = '';  // date clear
+  fetchAndUpdateStats();                      // saare dates ka data
+}
+
+
+  function calculateHoursDifference(start, end) {
+    if (!start || !end) return 0;
+    const startDt = new Date(`1970-01-01T${start}:00`);
+    const endDt   = new Date(`1970-01-01T${end}:00`);
+    let diff = (endDt - startDt) / (1000 * 60 * 60);
+    if (diff < 0) diff += 24;
+    return diff;
+  }
+
+  function calcScore(value, target = 1.2, lower = 2.0, weight = 10) {
+    if (isNaN(value)) return 0;
+    if (value <= target) return weight;
+    if (value >= lower)  return 0;
+    const ratio = (value - target) / (lower - target);
+    return (1 - ratio) * weight;
+  }
+
+  // -------- DASHBOARD (STATS FROM DB) --------
+
+  async function fetchAndUpdateStats() {
+    try {
+      const res  = await fetch('/ltp-history');
+      const data = await res.json();
+      if (data.status !== 'ok') return;
+      const records = data.items || [];
+
+      const filterDateEl = document.getElementById('filterDate');
+      const filterDate   = filterDateEl ? filterDateEl.value : '';
+
+      let filtered = records;
+
+      if (filterDate) {
+        const sel = new Date(filterDate);           // user-selected date
+        filtered = records.filter(r => {
+          const d = new Date(r.date_reg);          // DB date string (same as history)[web:37]
+          return d.toDateString() === sel.toDateString();
+        });
+      }
+
+      const total = filtered.length;
+      const ltp   = filtered.filter(r => r.status === 'LTP').length;
+      const exltp = filtered.filter(r => r.status === 'EX-LTP').length;
+      const ltpPerc   = total > 0 ? (ltp   / total) * 100 : 0;
+      const exltpPerc = total > 0 ? (exltp / total) * 100 : 0;
+      const twoHrCount = filtered.filter(r => r.within_2hr === 'Yes').length;
+
+      const ltpScore     = calcScore(ltpPerc);
+      const exltpScore   = calcScore(exltpPerc);
+      const overallScore = Math.round((0.3 * ltpScore + 0.7 * exltpScore) * 10) / 10;
+
+      document.getElementById('totalCalls').textContent       = total;
+      document.getElementById('ltpCalls').textContent         = ltp;
+      document.getElementById('exltpCalls').textContent       = exltp;
+      document.getElementById('ltpPercentage').textContent    = ltpPerc.toFixed(2)   + '%';
+      document.getElementById('exltpPercentage').textContent  = exltpPerc.toFixed(2) + '%';
+      document.getElementById('ltpScore').textContent         = ltpScore.toFixed(2);
+      document.getElementById('exltpScore').textContent       = exltpScore.toFixed(2);
+      document.getElementById('overallScore').textContent     = overallScore.toFixed(2);
+      document.getElementById('twoHrCount').textContent       = twoHrCount;
+
+      if (filterDateEl) {
+        filterDateEl.oninput = () => fetchAndUpdateStats();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  // helper: HTTP date string -> "YYYY-MM-DD"
+function onlyDate(httpDate) {
+  if (!httpDate) return '';
+  const d = new Date(httpDate);                 // parses "Tue, 09 Dec 2025 00:00:00 GMT"[web:4][web:37]
+  if (isNaN(d.getTime())) return httpDate;      // safety agar parse fail ho
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+async function fetchAndRenderHistory() {
+  try {
+    const res  = await fetch('/ltp-history');
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+
+    let records = data.items || [];
+    const from  = document.getElementById('quickFrom').value;
+    const to    = document.getElementById('quickTo').value;
+
+    if (from) records = records.filter(r => new Date(r.date_reg) >= new Date(from));
+    if (to)   records = records.filter(r => new Date(r.date_reg) <= new Date(to));
+
+    const body = document.getElementById('recordsBody');
+
+    if (!records.length) {
+      body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No records</td></tr>';
+      return;
+    }
+
+    body.innerHTML = records.map(r => {
+      const days = r.days;
+      let statusClass, statusText;
+
+      if (r.status === 'EX-LTP') {
+        statusClass = 'ex-ltp';
+        statusText  = 'EX-LTP';
+      } else if (r.status === 'LTP') {
+        statusClass = 'ltp';
+        statusText  = 'LTP';
+      } else {
+        statusClass = 'normal';
+        statusText  = 'Normal';
+      }
+
+      const isOpen = !r.date_close;
+
+      return `
+        <tr>
+          <td>${r.service_no}</td>
+          <td>${onlyDate(r.date_reg)}</td>
+          <td>${isOpen ? '-' : onlyDate(r.date_close)}</td>
+          <td>${isOpen ? '-' : (days ?? '')}</td>
+          <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+          <td>${isOpen ? '-' : (r.hours_diff != null ? Number(r.hours_diff).toFixed(2) : '-')}</td>
+          <td>${isOpen ? '-' : (r.within_2hr || '-')}</td>
+          <td class="actions">
+            <button class="small-btn edit" onclick="editRecord(${r.id})">Edit</button>
+            <button class="small-btn delete" onclick="deleteRecord(${r.id})">Delete</button>
+          </td>
+        </tr>`;
+    }).join('');
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+
+  document.getElementById('refreshHistoryBtn').onclick = function () {
+    document.getElementById('quickFrom').value = '';
+    document.getElementById('quickTo').value   = '';
+    fetchAndRenderHistory();
+  };
+
+  // -------- EDIT / DELETE (DB) --------
+
+  window.editRecord = async function (id) {
+    try {
+      const res  = await fetch('/ltp-history');
+      const data = await res.json();
+      if (data.status !== 'ok') return;
+      const rec = (data.items || []).find(r => r.id === id);
+      if (!rec) return;
+
+      setPage('register');
+      document.getElementById('serviceNo').value = rec.service_no || '';
+      document.getElementById('dateReg').value   = rec.date_reg   || '';
+      document.getElementById('dateClose').value = rec.date_close || '';
+      document.getElementById('startTime').value = '';
+      document.getElementById('endTime').value   = '';
+      editingRecordId = id;
+      document.getElementById('submitBtn').textContent = 'Update Call';
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  window.deleteRecord = async function (id) {
+    if (!confirm('Delete this?')) return;
+    try {
+      const res  = await fetch(`/ltp-delete/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        fetchAndRenderHistory();
+        fetchAndUpdateStats();
+      } else {
+        alert('Error: ' + (data.message || 'Unknown'));
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  window.applyQuickFilter = function () { fetchAndRenderHistory(); };
+
+  // CSV export & reset all now use DB data
+
+  window.exportToCsv = async function () {
+    const res  = await fetch('/ltp-history');
+    const data = await res.json();
+    if (data.status !== 'ok' || !(data.items || []).length) {
+      alert('No data');
+      return;
+    }
+    const records = data.items;
+    let csv = 'Service No,Date Registered,Date Closed,Days,Status,Hours Diff,Within 2hr\n';
+    records.forEach(r => {
+      csv += `"${r.service_no}","${r.date_reg || ''}","${r.date_close || ''}",${r.days ?? ''},"${r.status || ''}",${r.hours_diff != null ? Number(r.hours_diff).toFixed(2) : '-'},"${r.within_2hr || ''}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = 'ex-ltp.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  window.resetAll = async function () {
+    if (!confirm('Clear all?')) return;
+    // simple approach: delete all user rows via separate API or manual SQL
+    alert('For full reset, clear LTP rows in DB (or add /ltp-reset route).');
+  };
+
+  // -------- PERCENTAGE CALC (UNCHANGED) --------
+
+  const directLtpInput   = document.getElementById('directLtp');
+  const directExInput    = document.getElementById('directExltp');
+  const directLtpScoreEl = document.getElementById('directLtpScore');
+  const directExScoreEl  = document.getElementById('directExltpScore');
+  const directOverallEl  = document.getElementById('directOverallScore');
+  const calcPercentBtn   = document.getElementById('calcPercentBtn');
+
+  function runDirectCalc() {
+    const ltpVal = parseFloat(directLtpInput.value);
+    const exVal  = parseFloat(directExInput.value);
+
+    const lScore = calcScore(ltpVal);
+    const eScore = calcScore(exVal);
+
+    const overall = Math.round((0.3 * lScore + 0.7 * eScore) * 100) / 100;
+
+    directLtpScoreEl.textContent = `LTP Score: ${lScore.toFixed(2)} / 10`;
+    directExScoreEl.textContent  = `EX-LTP Score: ${eScore.toFixed(2)} / 10`;
+    directOverallEl.textContent  = `Overall Score: ${overall.toFixed(2)} / 10`;
+  }
+
+  if (calcPercentBtn) {
+    calcPercentBtn.addEventListener('click', runDirectCalc);
+  }
+
+  // init
+  setPage('dashboard');
+  fetchAndUpdateStats();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RE-DO (Repeat Repair Calculator)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f6ff; --card: #fff; --accent: #c9b6fc; --muted: #7569a6; --success: #13c277; --danger: #eb4b47;
+      --highlight: #EFE8FF;
+    }
+    body { margin: 0; font-family:"Poppins",sans-serif; background: var(--bg); color:#292053; min-height:100vh; }
+    .wrap{max-width:900px;margin:32px auto;}
+    h1{margin:0 0 4px;font-size:2.3rem;font-weight:700;color:#2b1d52;}
+    h2{margin:24px 0 14px;font-size:1.35rem; font-weight:700;}
+    .lead{color:var(--muted);margin-bottom:24px;}
+    .card{background:var(--card);border-radius:18px;padding:32px 28px;box-shadow:0 4px 32px #e2d7ff;}
+    .calculator{margin-bottom:38px;}
+    .calc-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-bottom:20px;}
+    .calc-form label{font-size:15px; color:#544688;margin-bottom:6px; font-weight:600;}
+    .calc-form input[type="text"], .calc-form input[type="date"] {
+      width:100%; padding:11px 10px; border-radius:9px; border:1px solid #e3dcff; background:#fff; font-size:15px;
+    }
+    .calc-form .calculated-value{display:flex;align-items:center;gap:15px;font-size:1.1rem;color:var(--accent);}
+    .calc-btns{display:flex;gap:15px;margin-top:12px;}
+    .btn{border:0;padding:12px 28px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:.13s;}
+    .btn.green{background:var(--success);color:#fff;}
+    .btn.red{background:var(--danger);color:#fff;}
+    .btn.violet{background:var(--accent);color:#292053;}
+    .btn:active{opacity:.85;}
+    .records-table{margin-top:38px;width:100%;background:var(--card);border-radius:14px;box-shadow:0 4px 28px #eee4ff;}
+    .records-head{padding:18px 24px;background:var(--highlight);border-radius:14px 14px 0 0;}
+    .records-head h2{margin:0;font-size:1.45rem;}
+    .table-controls{display:flex;align-items:center;gap:14px;margin-top:12px;margin-bottom:17px;}
+    .search-box{flex:1;display:flex;align-items:center;}
+    .search-box input[type=text], .search-box input[type=date]{
+      padding:9px 12px;font-size:15px;border-radius:7px;border:1px solid #e6e0ff;max-width:220px;
+      background:#fff;margin-right:8px;
+    }
+    .search-box .btn.violet{padding:10px 18px;}
+    .table-refresh{padding:11px 18px;background:var(--success);color:#fff;border-radius:9px;border:0;font-weight:700;cursor:pointer;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:14px 12px;text-align:left;font-size:15px;}
+    th{background:var(--highlight);}
+    tr:not(:last-child) td{border-bottom:1px solid #efe1ff;}
+    tr:nth-child(even){background:#faf8fe;}
+    .score-ok{color:var(--success);font-weight:700;}
+    .score-low{color:var(--danger);font-weight:700;}
+    .actions{display:flex;gap:8px;}
+    .icon-btn{padding:7px 10px;background:var(--danger);border-radius:7px;border:0;cursor:pointer;color:#fff;font-weight:600;}
+    .icon-btn.green{background:var(--success);}
+    .icon-btn.violet{background:var(--accent);color:#292053;}
+    .icon-btn svg{vertical-align:middle;}
+    @media (max-width:800px){
+      .card,.records-table{padding:14px;}
+      .calc-form{grid-template-columns:1fr;gap:14px;}
+      .search-box input[type=text], .search-box input[type=date] {max-width:150px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>RE-DO</h1>
+    <div class="lead">Repeat Repair Calculator<br>Enter date and percentage, get score and store submission. Search, filter, edit, and delete records easily.</div>
+    <div class="card calculator">
+      <h2><span style="color:var(--accent);font-size:1.5rem;">&#128208;</span> Calculate RE-DO Score</h2>
+      <form id="redoForm" autocomplete="off">
+        <div class="calc-form">
+          <div>
+            <label>Date</label>
+            <input type="date" id="inputDate" required>
+          </div>
+          <div>
+            <label>Percentage (%)</label>
+            <input type="text" id="inputPercentage" placeholder="e.g., 2.5" required>
+          </div>
+          <div>
+            <label>Score (Calculated)</label>
+            <input type="text" id="inputScore" readonly style="background:#f0eaff;">
+          </div>
+        </div>
+        <div class="calc-btns">
+          <button type="submit" class="btn green" id="submitBtn">Submit Record</button>
+          <button type="button" class="btn red" id="resetBtn">Reset</button>
+        </div>
+      </form>
+    </div>
+    
+    <div class="records-table">
+      <div class="records-head">
+        <h2>Records History</h2>
+        <div style="color:var(--muted);margin-top:2px;font-size:13px;">View and manage all RE-DO records</div>
+      </div>
+      <div class="table-controls">
+        <div class="search-box">
+          <input type="date" id="searchDate" placeholder="dd-mm-yyyy">
+         
+          <button type="button" class="btn violet" id="searchBtn">Search</button>
+        </div>
+        <button type="button" class="table-refresh" id="refreshBtn">&#x21bb; Refresh</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Percentage (%)</th>
+            <th>Score</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody"></tbody>
+      </table>
+    </div>
+  </div>
+  
+<script>
+function calcRedoScore(percentage) {
+  percentage = parseFloat(percentage);
+  if (isNaN(percentage)) return '';
+  if (percentage <= 2.08) {
+    return 10;
+  } else if (percentage < 3.08) {
+    return 10 * (3.08 - percentage) / 1.00;
+  } else {
+    return 0;
+  }
+}
+
+let editingId = null;   // DB row id
+
+async function saveRecordToServer(payload, id=null) {
+  const url    = id ? `/re_do/edit/${id}` : `/re_do/save`;
+  const method = id ? "PUT" : "POST";
+
+  const resp = await fetch(url, {
+    method,
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  });
+  const data = await resp.json();
+  if (!resp.ok || data.status !== "ok") {
+    throw new Error(data.message || "Save failed");
+  }
+}
+
+async function fetchRecordsFromServer() {
+  const resp = await fetch("/re_do/history");
+  if (!resp.ok) return [];
+  return await resp.json();      // [{id, record_date, percentage, score}, ...]
+}
+
+async function deleteRecordFromServer(id) {
+  const resp = await fetch(`/re_do/delete/${id}`, { method: "DELETE" });
+  const data = await resp.json();
+  if (!resp.ok || data.status !== "ok") {
+    throw new Error(data.message || "Delete failed");
+  }
+}
+
+// ----- form events -----
+
+document.getElementById('inputPercentage').addEventListener('input', function () {
+  let val = this.value.replace(/[^0-9.]/g, '');
+  this.value = val;
+  document.getElementById('inputScore').value = val ? calcRedoScore(val).toFixed(4) : '';
+});
+
+document.getElementById('redoForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const date       = document.getElementById('inputDate').value;
+  const percentage = document.getElementById('inputPercentage').value;
+  const score      = calcRedoScore(percentage);
+
+  if (!date || !percentage || isNaN(parseFloat(percentage))) {
+    alert('Please enter valid date and percentage!');
+    return;
+  }
+
+  try {
+    await saveRecordToServer(
+      { record_date: date, percentage, score },
+      editingId
+    );
+    resetForm();
+    await renderRecords();
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+document.getElementById('resetBtn').onclick = resetForm;
+
+function resetForm() {
+  document.getElementById('redoForm').reset();
+  document.getElementById('inputScore').value = '';
+  editingId = null;
+  document.getElementById('submitBtn').textContent = 'Submit Record';
+}
+
+// ----- table render -----
+
+async function renderRecords(filteredRecords = null) {
+  const body = document.getElementById('recordsBody');
+  let records = filteredRecords;
+
+  if (!records) {
+    records = await fetchRecordsFromServer();
+  }
+
+  if (!records || records.length === 0) {
+    body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);">No records found</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = records.map(r => `
+    <tr>
+      <td>${r.record_date}</td>
+      <td>${parseFloat(r.percentage).toFixed(2)}%</td>
+      <td>${parseFloat(r.score).toFixed(4)}</td>
+      <td class="actions">
+        <button class="icon-btn violet" onclick="editRecord(${r.id})">&#9998;</button>
+        <button class="icon-btn red" onclick="deleteRecord(${r.id})">&#128465;</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+window.editRecord = async function (id) {
+  const records = await fetchRecordsFromServer();
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+
+  document.getElementById('inputDate').value       = r.record_date;
+  document.getElementById('inputPercentage').value = r.percentage;
+  document.getElementById('inputScore').value      = calcRedoScore(r.percentage).toFixed(4);
+  editingId = id;
+  document.getElementById('submitBtn').textContent = 'Update Record';
+};
+
+window.deleteRecord = async function (id) {
+  if (!confirm('Delete record?')) return;
+  try {
+    await deleteRecordFromServer(id);
+    await renderRecords();
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+// ----- SEARCH (sirf date se) -----
+
+document.getElementById('searchBtn').onclick = async function () {
+  const searchDate = document.getElementById('searchDate').value;  // YYYY-MM-DD
+  let records = await fetchRecordsFromServer();
+
+  if (searchDate) {
+    records = records.filter(r => r.record_date === searchDate);
+  }
+  renderRecords(records);
+};
+
+// ----- REFRESH -----
+
+document.getElementById('refreshBtn').onclick = function () {
+  document.getElementById('searchDate').value = '';
+  renderRecords();
+};
+
+// initial load
+renderRecords();
+</script>
+
+</body>
+</html>

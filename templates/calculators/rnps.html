@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>R-NPS | Revenue Net Promoter Score</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+    --bg: #f6f3ff;
+    --card: #fff;
+    --accent: #c7b6fa;
+    --muted: #6e5ea8;
+    --purple: #a488ea;
+    --success: #13c277;
+    --danger: #eb4b47;
+        }
+            body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: #f6f3ff; 
+            }
+
+            .wrap {
+            max-width: 1100px;   
+            margin: 50px auto 0 auto;
+            padding: 0 24px 30px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;   
+            }
+
+            .card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 38px 44px;
+            box-shadow: 0 8px 40px #e6deff88;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 950px;      
+            }
+
+
+        h1 {
+        text-align: center;
+        margin-bottom: 0;
+        font-size: 2.7rem;
+        font-weight: 700;
+        color: var(--purple);
+        letter-spacing: 0.5px;
+        }
+        h2 {
+        font-size: 1.5rem;
+        margin-bottom: 18px;
+        color: #2b1952;
+        font-weight: 700;
+        }
+        .desc {
+        text-align: center;
+        color: var(--muted);
+        margin-bottom: 30px;
+        font-size: 1.15rem;
+        }
+        .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+        margin-bottom: 26px;
+        }
+        label {
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 1.12rem;
+        }
+        input[type="text"], input[type="number"], input[type="date"] {
+        width: 100%;
+        padding: 18px 13px;
+        border-radius: 12px;
+        border: 1.5px solid #e3dcff;
+        background: #f8f8ff;
+        font-size: 1.10rem;
+        margin-top: 8px;
+        font-family: inherit;
+        }
+        .btn-row {
+        display: flex;
+        gap: 18px;
+        margin: 40px 0 0;
+        }
+        .btn {
+        border: 0;
+        padding: 16px 32px;
+        border-radius: 13px;
+        font-size: 1.07rem;
+        font-weight: 700;
+        cursor: pointer;
+        }
+        .btn.purple { background: var(--accent); color: #3c2057; }
+        .btn.green { background: var(--success); color: #fff; }
+        .btn.red { background: var(--danger); color: #fff; }
+        .btn:active {opacity:.91;}
+        .result-card {
+        background: #f4eeff;
+        border-radius: 24px;
+        padding: 32px 18px;
+        margin-top: 36px;
+        text-align: center;
+        box-shadow: 0 2px 12px #e3dcff55;
+        }
+        .output-label {
+        font-size: 1.2rem;
+        color: #5846a2;
+        font-weight: 600;
+        }
+        .output-value {
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 18px;
+        }
+        .navlink {
+        display: block;
+        text-align: center;
+        color: var(--purple);
+        margin: 25px 0 6px 0;
+        font-weight: 600;
+        text-decoration: underline;
+        font-size: 1.1rem;
+        }
+        @media (max-width:1020px) {
+        .wrap {max-width:99vw;padding:0 3vw;}
+        .card {padding:24px 7vw;}
+        }
+        @media (max-width:650px) {
+        .form-row {grid-template-columns:1fr;gap:15px;}
+        .btn-row {flex-direction:column;}
+        .card {padding:22px 7px;}
+        h1 {font-size:2.1rem;}
+        .output-value{font-size:2.0rem;}
+        }
+  </style>
+</head>
+<body>
+<div id="calculatorApp">
+  <div class="center">
+    <h1>R-NPS</h1>
+    <div class="desc">Rating Net Promoter Score Calculator</div>
+    <div class="card">
+      <h2>Calculate R-NPS Scores</h2>
+      <form id="rnpsForm" autocomplete="off">
+        <div class="form-row">
+          <div>
+            <label>Date</label>
+            <input type="date" id="date" required>
+          </div>
+          <div>
+            <label>R-NPS (Overall) Percentage (%)</label>
+            <input type="number" min="0" step="0.01" id="overallPerc" placeholder="Enter %" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>R-NPS (Premium) Percentage (%)</label>
+            <input type="number" min="0" step="0.01" id="premiumPerc" placeholder="Enter %" required>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:10px;">
+            <button type="submit" class="btn purple" style="width:100%;">Calculate Scores</button>
+          </div>
+        </div>
+      </form>
+      <div class="result-card" id="resultBox" style="display:none;">
+        <div class="output-label">R-NPS Overall Score</div>
+        <div class="output-value" id="overallScoreVal">0</div>
+        <div class="output-label" style="margin-top:10px;">R-NPS Premium Score</div>
+        <div class="output-value" id="premiumScoreVal">0</div>
+      </div>
+      <a class="navlink" href="history.html" id="gotoHistory">Go to Calculation History &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<div id="historyApp" style="display:none;">
+  <div class="wrap">
+    <div class="card history-card">
+    <h2 style="font-size:1.7rem;">Calculation History</h2>
+      <div style="color:var(--muted);margin-top:-10px;margin-bottom:20px;font-size:1rem;">
+        View and manage your R-NPS calculation records.
+      </div>
+      <div style="margin-bottom:20px;display:flex;gap:12px;">
+        <input type="date" id="historySearchDate" style="padding:10px 14px;border-radius:8px;border:1px solid #e3dcff;">
+        <button class="btn green" id="historyRefresh">Refresh</button>
+        <button class="btn purple" id="gotoCalc">&larr; Back to Calculator</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table style="width:100%;">
+        <thead>
+        <tr>
+          <th>Date</th>
+          <th>Overall %</th>
+          <th>Premium %</th>
+          <th>Overall Score</th>
+          <th>Premium Score</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function calcRNPSPremium(percentage) {
+  percentage = parseFloat(percentage);
+  if (isNaN(percentage)) return '';
+  if (percentage >= 80) {
+    return 10;
+  } else if (percentage >= 65) {
+    return ((percentage - 65) / 15) * 10;
+  } else {
+    return 0;
+  }
+}
+
+function calcRNPSOverall(percentage) {
+  percentage = parseFloat(percentage);
+  if (isNaN(percentage)) return '';
+  if (percentage >= 80) {
+    return 5;
+  } else if (percentage >= 65) {
+    return ((percentage - 65) / 15) * 5;
+  } else {
+    return 0;
+  }
+}
+
+// ------------ STATE ------------
+
+let editingId = null; // null = new record, otherwise edit mode
+
+function showCalculatorPage() {
+  document.getElementById('calculatorApp').style.display = '';
+  document.getElementById('historyApp').style.display = 'none';
+}
+
+function showHistoryPage() {
+  document.getElementById('calculatorApp').style.display = 'none';
+  document.getElementById('historyApp').style.display = '';
+  renderHistory();
+}
+
+// ------------ API HELPERS ------------
+
+async function fetchHistoryFromServer() {
+  const res = await fetch('/rnps/history');
+  const data = await res.json();
+  if (data.status !== 'ok') {
+    console.error('History error:', data);
+    return [];
+  }
+  return data.items || [];
+}
+
+async function saveRecordToServer(payload, id = null) {
+  const url = id ? `/rnps/history/${id}` : '/rnps/history';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method,
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+async function deleteRecordFromServer(id) {
+  const res = await fetch(`/rnps/history/${id}`, { method: 'DELETE' });
+  return res.json();
+}
+
+// ------------ FORM HANDLING ------------
+
+if (document.getElementById('rnpsForm')) {
+  document.getElementById('rnpsForm').onsubmit = async function (e) {
+    e.preventDefault();
+    const date = document.getElementById('date').value;
+    const overallPerc = document.getElementById('overallPerc').value;
+    const premiumPerc = document.getElementById('premiumPerc').value;
+
+    if (!date || !overallPerc || !premiumPerc ||
+        isNaN(overallPerc) || isNaN(premiumPerc)) {
+      alert('Complete all data!');
+      return;
+    }
+
+    const overallScore = calcRNPSOverall(overallPerc);
+    const premiumScore = calcRNPSPremium(premiumPerc);
+
+    document.getElementById('overallScoreVal').textContent = overallScore.toFixed(2);
+    document.getElementById('premiumScoreVal').textContent = premiumScore.toFixed(2);
+    document.getElementById('resultBox').style.display = '';
+
+    const payload = {
+      date,
+      overallPerc: parseFloat(overallPerc),
+      premiumPerc: parseFloat(premiumPerc),
+      overallScore: overallScore,
+      premiumScore: premiumScore
+    };
+
+    try {
+      const resp = await saveRecordToServer(payload, editingId);
+      if (resp.status === 'ok') {
+        editingId = null; // reset edit mode
+        alert('Saved successfully');
+      } else {
+        alert('Save failed: ' + (resp.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Server error while saving');
+    }
+  };
+
+  document.getElementById('gotoHistory').onclick = function (e) {
+    e.preventDefault();
+    showHistoryPage();
+  };
+}
+
+// ------------ HISTORY RENDER ------------
+
+async function renderHistory(filteredRecords = null) {
+  let records = filteredRecords;
+  if (!records) {
+    records = await fetchHistoryFromServer();
+  }
+
+  const body = document.getElementById('historyBody');
+  if (!records || records.length === 0) {
+    body.innerHTML =
+      `<tr><td colspan="6" style="text-align:center;color:var(--muted);">No history yet</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = records.map(r => `
+    <tr>
+      <td>${r.record_date || r.date}</td>
+      <td>${parseFloat(r.overall_percent ?? r.overallPerc).toFixed(2)}%</td>
+      <td>${parseFloat(r.premium_percent ?? r.premiumPerc).toFixed(2)}%</td>
+      <td>${parseFloat(r.overall_score ?? r.overallScore).toFixed(2)}</td>
+      <td>${parseFloat(r.premium_score ?? r.premiumScore).toFixed(2)}</td>
+      <td>
+        <button class="btn purple" onclick="editHistory(${r.id})">Edit</button>
+        <button class="btn red" onclick="deleteHistory(${r.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ------------ EDIT / DELETE BUTTONS ------------
+
+window.editHistory = async function (id) {
+  const records = await fetchHistoryFromServer();
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+
+  editingId = id; // now submit will call PUT
+
+  showCalculatorPage();
+
+  const dateStr = (r.record_date || r.date || '').toString().slice(0, 10);
+
+  document.getElementById('date').value = dateStr;
+  document.getElementById('overallPerc').value = r.overall_percent ?? r.overallPerc;
+  document.getElementById('premiumPerc').value = r.premium_percent ?? r.premiumPerc;
+
+  const overallScore = parseFloat(r.overall_score ?? r.overallScore);
+  const premiumScore = parseFloat(r.premium_score ?? r.premiumScore);
+
+  document.getElementById('overallScoreVal').textContent = overallScore.toFixed(2);
+  document.getElementById('premiumScoreVal').textContent = premiumScore.toFixed(2);
+  document.getElementById('resultBox').style.display = '';
+};
+
+window.deleteHistory = async function (id) {
+  if (!confirm('Delete this record?')) return;
+  try {
+    const resp = await deleteRecordFromServer(id);
+    if (resp.status === 'ok') {
+      await renderHistory();
+    } else {
+      alert('Delete failed: ' + (resp.message || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Server error while deleting');
+  }
+};
+
+// ------------ NAV, REFRESH, SEARCH ------------
+
+if (document.getElementById('gotoCalc')) {
+  document.getElementById('gotoCalc').onclick = function () {
+    showCalculatorPage();
+  };
+}
+
+if (document.getElementById('historyRefresh')) {
+  document.getElementById('historyRefresh').onclick = function () {
+    document.getElementById('historySearchDate').value = '';
+    document.getElementById('historySearch').value = '';
+    renderHistory();
+  };
+}
+
+if (document.getElementById('historySearchDate')) {
+  document.getElementById('historySearchDate').oninput = async function () {
+    const val = this.value;
+    let records = await fetchHistoryFromServer();
+    if (val) {
+      records = records.filter(r => (r.record_date || r.date || '').slice(0, 10) === val);
+    }
+    renderHistory(records);
+  };
+}
+
+if (document.getElementById('historySearch')) {
+  document.getElementById('historySearch').oninput = async function () {
+    const q = this.value.trim();
+    let records = await fetchHistoryFromServer();
+    if (q) {
+      const qLower = q.toLowerCase();
+      records = records.filter(r => {
+        const dateStr = (r.record_date || r.date || '').toString();
+        const overallPerc = String(r.overall_percent ?? r.overallPerc);
+        const premiumPerc = String(r.premium_percent ?? r.premiumPerc);
+        const overallScore = String(r.overall_score ?? r.overallScore);
+        const premiumScore = String(r.premium_score ?? r.premiumScore);
+        return (
+          dateStr.includes(qLower) ||
+          overallPerc.includes(qLower) ||
+          premiumPerc.includes(qLower) ||
+          overallScore.includes(qLower) ||
+          premiumScore.includes(qLower)
+        );
+      });
+    }
+    renderHistory(records);
+  };
+}
+
+// default view
+showCalculatorPage();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Scoring Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: #f4f1ff;
+        }
+        h1 {
+            text-align: center;
+            font-size: 38px;
+            color: #2b1d52;
+            margin-top: 30px;
+            font-weight: 700;
+        }
+        .subtitle {
+            text-align: center;
+            margin-top: -10px;
+            color: #5a4d7a;
+        }
+        .date-card {
+            width: 50%;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .date-card input {
+            margin-top: 10px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            width: 60%;
+            font-size: 16px;
+        }
+        .container {
+            width: 85%;
+            background: white;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 24px;
+            color: #2b1d52;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .input-box label {
+            font-size: 14px;
+            color: #473c66;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-box input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            margin-top: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        .input-box input:focus {
+            outline: none;
+            border-color: #3378ff;
+            box-shadow: 0 0 0 2px rgba(51, 120, 255, 0.2);
+        }
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            grid-column: 1 / -1;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 14px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            width: 200px;
+            color: white;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .btn-calc { background: #3378ff; }
+        .btn-calc:hover { background: #2962ff; }
+        .btn-reset { background: #ff4b4b; }
+        .btn-reset:hover { background: #e53935; }
+        .btn-history { background: #a27bff; }
+        .btn-history:hover { background: #8e24aa; }
+        .results-box {
+            width: 85%;
+            background: white;
+            margin: 30px auto;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            text-align: center;
+            display: none;
+        }
+        .score {
+            font-size: 46px;
+            color: #3378ff;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        .grade {
+            font-size: 45px;
+            color: #a27bff;
+            margin: 10px 0;
+            font-weight: 700;
+        }
+        .grade-text {
+            color: #6a5a92;
+            margin-top: -5px;
+            font-size: 18px;
+        }
+        .grading-scale {
+            text-align: left;
+            width: 70%;
+            margin: 20px auto;
+            color: #4b3f6a;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .error {
+            color: #ff4b4b;
+            font-size: 16px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 5px;
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+        .close:hover { color: black; }
+        .history-controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .history-table th, .history-table td {
+            border: 1px solid #ddd;
+            padding: 12px 8px;
+            text-align: left;
+        }
+        .history-table th {
+            background-color: #f8f9fa;
+            color: #2b1d52;
+        }
+        .history-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .history-table tr:hover { background-color: #f0f0f0; }
+        .delete-btn {
+            background: #ff4b4b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .delete-btn:hover { background: #e53935; }
+        .export-btn { 
+            background: #3378ff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 14px;
+        }
+        .export-btn:hover { background: #2962ff; }
+        #no-history {
+            text-align: center; 
+            color: #666; 
+            padding: 40px;
+            font-style: italic;
+        }
+        @media (max-width: 768px) {
+            .input-grid { grid-template-columns: 1fr; gap: 15px; }
+            .container, .results-box, .date-card { width: 95%; padding: 20px; }
+            .btn-row { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 250px; margin-bottom: 10px; }
+            .history-table { font-size: 12px; }
+            .history-table th, .history-table td { padding: 6px; }
+            .history-controls { flex-direction: column; align-items: center; }
+            .export-btn { margin-left: 0; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Performance Scoring Dashboard</h1>
+    <p class="subtitle">Track and grade your key performance metrics</p>
+
+    <div class="date-card">
+        <h3>Select Date</h3>
+        <input type="date" id="date">
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">Required for saving to history</p>
+    </div>
+
+    <div class="container">
+        <div class="section-title">Enter Scores</div>
+        <p>All scores add up to create total - simple addition only</p>
+
+        <div class="input-grid">
+            <div class="input-box">
+                <label for="ex_ltp">Ex LTP</label>
+                <input type="number" id="ex_ltp" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="ltp">LTP</label>
+                <input type="number" id="ltp" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="d0_overall">D+0 SPEED (OVERALL)</label>
+                <input type="number" id="d0_overall" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="d0_premium">D+0 SPEED (PREMIUM)</label>
+                <input type="number" id="d0_premium" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="redo">RE-DO</label>
+                <input type="number" id="redo" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="iqc">IQC SKIP%</label>
+                <input type="number" id="iqc" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="rnps_overall">R-NPS (OVERALL)</label>
+                <input type="number" id="rnps_overall" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="rnps_premium">R-NPS (PREMIUM)</label>
+                <input type="number" id="rnps_premium" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="dealer_visit">Dealer Visit Score</label>
+                <input type="number" id="dealer_visit" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="google_rating">Google Rating Score</label>
+                <input type="number" id="google_rating" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="ub_repair">UB REPAIR</label>
+                <input type="number" id="ub_repair" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="credit_block">Credit Block Cases</label>
+                <input type="number" id="credit_block" placeholder="0" step="0.01">
+            </div>
+
+            <div class="input-box">
+                <label for="ofs">OFS</label>
+                <input type="number" id="ofs" placeholder="0" step="0.01">
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-calc" onclick="calculateScore()">Calculate Score</button>
+            <button class="btn btn-reset" onclick="resetForm()">Reset All</button>
+            <button class="btn btn-history" onclick="openHistory()">View History</button>
+        </div>
+        <div id="error" class="error"></div>
+    </div>
+
+    <div class="results-box" id="results-box">
+        <h2>TOTAL SCORE</h2>
+        <p class="score" id="total_score">0.00</p>
+
+        <h2>GRADE</h2>
+        <p class="grade" id="grade">D</p>
+        <p class="grade-text" id="grade_text">Needs Improvement</p>
+
+        <div class="grading-scale">
+            <strong>Grading Scale:</strong><br><br>
+            S: 95-100 (Excellent)<br>
+            A: 90-95 (Good)<br>
+            B: 60-89 (Average)<br>
+            C: 40-59 (Below Average)<br>
+            D: Below 40 (Needs Improvement)<br>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeHistory()">&times;</span>
+            <h2>Calculation History</h2>
+            <div class="history-controls">
+                <input
+                    type="text"
+                    id="historySearch"
+                    placeholder="Search by date / time / grade"
+                    style="padding:8px 10px;border-radius:6px;border:1px solid #ccc;min-width:220px;"
+                >
+                <button class="export-btn" onclick="filterHistory()">Search</button>
+                <!-- Clear All History button removed -->
+                <button class="export-btn" onclick="exportHistoryCSV()">Export to CSV</button>
+            </div>
+            <table id="history-table" class="history-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Total Score</th>
+                        <th>Grade</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+            <p id="no-history">No calculations saved yet.</p>
+        </div>
+    </div>
+    <script>
+        let history = [];
+
+        async function calculateScore() {
+            const errorEl = document.getElementById('error');
+            const resultsBox = document.getElementById('results-box');
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+
+            const date = document.getElementById('date').value;
+            if (!date) {
+                errorEl.textContent = 'Please select a date.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const exLtp        = Number(document.getElementById('ex_ltp').value) || 0;
+            const ltpVal       = Number(document.getElementById('ltp').value) || 0;
+            const d0Overall    = Number(document.getElementById('d0_overall').value) || 0;
+            const d0Premium    = Number(document.getElementById('d0_premium').value) || 0;
+            const redo         = Number(document.getElementById('redo').value) || 0;
+            const iqcVal       = Number(document.getElementById('iqc').value) || 0;
+            const rnpsOverall  = Number(document.getElementById('rnps_overall').value) || 0;
+            const rnpsPremium  = Number(document.getElementById('rnps_premium').value) || 0;
+            const dealerVisit  = Number(document.getElementById('dealer_visit').value) || 0;
+            const googleRating = Number(document.getElementById('google_rating').value) || 0;
+            const ubRepair     = Number(document.getElementById('ub_repair').value) || 0;
+            const creditBlock  = Number(document.getElementById('credit_block').value) || 0;
+            const ofs          = Number(document.getElementById('ofs').value) || 0;
+
+            let totalScore = exLtp + ltpVal + d0Overall + d0Premium + redo + iqcVal +
+                            rnpsOverall + rnpsPremium + dealerVisit + googleRating +
+                            ubRepair + creditBlock + ofs;
+
+            let grade, gradeText;
+            if (totalScore >= 95) {
+                grade = "S"; gradeText = "Excellent";
+            } else if (totalScore >= 90) {
+                grade = "A"; gradeText = "Good";
+            } else if (totalScore >= 60) {
+                grade = "B"; gradeText = "Average";
+            } else if (totalScore >= 40) {
+                grade = "C"; gradeText = "Below Average";
+            } else {
+                grade = "D"; gradeText = "Needs Improvement";
+            }
+
+            document.getElementById('total_score').textContent = totalScore.toFixed(2);
+            document.getElementById('grade').textContent = grade;
+            document.getElementById('grade_text').textContent = gradeText;
+            resultsBox.style.display = 'block';
+            resultsBox.scrollIntoView({ behavior: 'smooth' });
+
+            // DB me save
+            saveToServer(totalScore, grade);
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input[type="number"], input[type="date"]')
+                .forEach(input => input.value = '');
+            document.getElementById('results-box').style.display = 'none';
+        }
+
+        function renderHistoryTable(list) {
+            const table = document.getElementById('history-table');
+            const tbody = document.getElementById('history-body');
+            const noHistory = document.getElementById('no-history');
+
+            if (!list || list.length === 0) {
+                table.style.display = 'none';
+                noHistory.style.display = 'block';
+                tbody.innerHTML = '';
+                return;
+            }
+
+            table.style.display = 'table';
+            noHistory.style.display = 'none';
+            tbody.innerHTML = '';
+
+            list.forEach((entry) => {
+                const row = tbody.insertRow();
+                const dateOnly = entry.calc_datetime || '';  // "YYYY-MM-DD"
+
+                row.innerHTML = `
+                    <td>${dateOnly}</td>
+                    <td>${Number(entry.total_score).toFixed(2)}</td>
+                    <td>${entry.grade}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteHistory(${entry.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // History modal open: data MySQL se fetch karo
+        async function openHistory() {
+            const modal = document.getElementById('historyModal');
+            try {
+                const res = await fetch('/performance-history');
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    history = data.items || [];
+                    renderHistoryTable(history);
+                } else {
+                    console.error('History error:', data.message);
+                    renderHistoryTable([]);
+                }
+            } catch (e) {
+                console.error('Error loading history:', e);
+                renderHistoryTable([]);
+            }
+            modal.style.display = 'block';
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        // Ab delete DB se bhi karega
+        async function deleteHistory(id) {
+            if (!confirm("Delete this record?")) return;
+
+            try {
+                const res = await fetch(`/performance-delete/${id}`, {
+                    method: "POST"
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    history = history.filter(item => item.id !== id);
+                    renderHistoryTable(history);
+                } else {
+                    alert('Delete failed: ' + data.message);
+                }
+            } catch (e) {
+                console.error('Delete error:', e);
+            }
+        }
+
+        function filterHistory() {
+            const query = document.getElementById('historySearch').value.trim().toLowerCase();
+
+            if (!query) {
+                renderHistoryTable(history);
+                return;
+            }
+
+            const filtered = history.filter(entry => {
+                const combined = (entry.calc_datetime + ' ' +
+                                entry.grade + ' ' +
+                                Number(entry.total_score).toFixed(2)).toLowerCase();
+                return combined.includes(query);
+            });
+
+            renderHistoryTable(filtered);
+        }
+
+        function exportHistoryCSV() {
+            if (!history || history.length === 0) {
+                alert('No history to export.');
+                return;
+            }
+
+            let csv = 'Date,Total Score,Grade\n';
+
+            history.forEach(entry => {
+                const dateOnly = entry.calc_datetime || '';
+                csv += `${dateOnly},${Number(entry.total_score).toFixed(2)},${entry.grade}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `performance_history_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('historyModal');
+            if (event.target === modal) closeHistory();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('historySearch');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') filterHistory();
+                });
+            }
+        });
+
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateScore();
+            });
+        });
+
+        // Save to server with selected date
+        async function saveToServer(totalScore, grade) {
+            const date = document.getElementById('date').value; // "YYYY-MM-DD"
+            try {
+                const res = await fetch("/performance-save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        total_score: totalScore,
+                        grade: grade,
+                        calc_date: date
+                    })
+                });
+                const data = await res.json();
+                console.log("Server:", data);
+            } catch (e) {
+                console.error("Error saving to server:", e);
+            }
+        }
+    </script>
+   </body>
+</html>

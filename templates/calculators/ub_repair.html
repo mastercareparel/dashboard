@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UB Repair Calculator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 { color: #2c3e50; margin-bottom: 10px; }
+    p  { margin-bottom: 20px; color: #6c757d; }
+
+    .calculator-card {
+      background: white;
+      border-radius: 15px;
+      padding: 24px 22px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    h2 { color: #2c3e50; margin-bottom: 10px; }
+
+    .input-group { margin-bottom: 15px; text-align: left; }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #495057;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: #f8f9fa;
+    }
+
+    .input-group input:focus {
+      border-color: #2c3e50;
+      outline: none;
+    }
+
+    .optional-input { opacity: 0.85; font-style: italic; }
+
+    .results {
+      background: #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: left;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .result-item label { font-weight: bold; color: #495057; }
+
+    #percentage, #score {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      min-width: 120px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .green { background-color: #28a745; color: white; }
+    .blue  { background-color: #007bff; color: white; }
+    .red   { background-color: #dc3545; color: white; }
+
+    .history-section {
+      display: none;
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+
+    .history-section.active { display: block; }
+
+    #historyList {
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .history-table-wrapper { margin-top: 15px; overflow-x: auto; }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #dcdfe3;
+      text-align: left;
+    }
+
+    .history-table thead {
+      background: #dee2e6;
+      font-weight: 600;
+      color: #343a40;
+    }
+
+    .history-table tbody tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+
+    .edit-btn, .delete-btn {
+      padding: 6px 10px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      color: #fff;
+    }
+    .edit-btn   { background: #007bff; }
+    .delete-btn { background: #dc3545; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      text-align: left;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+      color: #6c757d;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover { color: #2c3e50; }
+
+    .modal-content ul {
+      color: #495057;
+      list-style-position: inside;
+    }
+
+    @media (max-width: 600px) {
+      .buttons { flex-direction: column; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>UB Repair Calculator</h1>
+    <p>Calculate your LCD quality control percentage and score</p>
+
+    <div class="calculator-card">
+      <h2>Calculator</h2>
+      <p>Enter your UB consume or direct percentage</p>
+
+      <div class="input-group">
+        <label>Date</label>
+        <input type="date" id="ubDate">
+      </div>
+
+      <div class="input-group">
+        <label>Total UB Consume (optional)</label>
+        <input type="number" id="iqcAttempt" min="0" placeholder="Enter UB consume value">
+      </div>
+
+      <div class="input-group">
+        <label>Total LCD (optional)</label>
+        <input type="number" id="totalInwarranty" min="1" placeholder="Enter total LCD">
+      </div>
+
+      <div class="input-group optional-input">
+        <label>Direct Percentage</label>
+        <input type="number" id="directPercentage" min="0" max="100" step="0.01"
+               placeholder="Enter percentage directly (e.g. 78.50)">
+      </div>
+
+      <div class="results">
+        <div class="result-item">
+          <label>Percentage:</label>
+          <span id="percentage">0.00%</span>
+        </div>
+        <div class="result-item">
+          <label>Score:</label>
+          <span id="score">0.0 / 5</span>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn green" id="calcBtn">Calculate</button>
+        <button class="btn green" id="saveBtn">Save to History</button>
+        <button class="btn green" id="historyBtn">View History</button>
+        <button class="btn blue"  id="resetBtn">Reset</button>
+        <button class="btn red"   id="infoBtn">Info</button>
+      </div>
+    </div>
+
+    <div id="historySection" class="history-section">
+      <h2>Calculation History</h2>
+      <p>Your saved UB repair entries (editable and deletable)</p>
+      <button class="btn blue" onclick="toggleHistory()">Hide History</button>
+      <div id="historyList"></div>
+    </div>
+
+    <div id="infoModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeInfo()">&times;</span>
+        <h2>Scoring Information</h2>
+        <ul>
+          <li>≥35%: Full 5 marks</li>
+          <li>20%-35%: Linearly scaled from 0 to 5 marks</li>
+          <li>&lt;20%: 0 marks</li>
+          <li>Percentage = (Total UB Consume / Total LCD) × 100</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let historyVisible = false;
+    let ubEditingId = null;        // current editing row id
+    let ubEditingSource = null;    // 'formula' or 'direct'
+
+    function applyPercentage(percentage, source) {
+      let score = 0;
+
+      if (percentage >= 35) {
+        score = 5;
+      } else if (percentage >= 20) {
+        score = ((percentage - 20) / 15) * 5;
+      } else {
+        score = 0;
+      }
+
+      document.getElementById('percentage').textContent = percentage.toFixed(2) + '%';
+      document.getElementById('score').textContent      = score.toFixed(1) + ' / 5';
+
+      const attempt = parseFloat(document.getElementById('iqcAttempt').value) || 0;
+      const total   = parseFloat(document.getElementById('totalInwarranty').value) || 0;
+      const directP = parseFloat(document.getElementById('directPercentage').value) || 0;
+
+      window.currentCalculation = {
+        percentage: percentage.toFixed(2),
+        score: score.toFixed(1),
+        source,
+        attempt,
+        total,
+        directPercent: directP
+      };
+    }
+
+    // Direct % live update even without UB data
+    document.getElementById('directPercentage').addEventListener('input', function () {
+      const directPercent = parseFloat(this.value) || 0;
+      const attempt = parseFloat(document.getElementById('iqcAttempt').value) || 0;
+      const total   = parseFloat(document.getElementById('totalInwarranty').value) || 0;
+      if (attempt > 0 && total > 0) return;
+      applyPercentage(directPercent, 'direct');
+    });
+
+    function calculate() {
+      const attempt       = parseFloat(document.getElementById('iqcAttempt').value) || 0;
+      const total         = parseFloat(document.getElementById('totalInwarranty').value) || 0;
+      const directPercent = parseFloat(document.getElementById('directPercentage').value) || 0;
+
+      let percentage = 0;
+      let source = 'direct';
+
+      if (attempt > 0 && total > 0) {
+        percentage = (attempt / total) * 100;
+        source = 'formula';
+      } else if (directPercent > 0) {
+        percentage = directPercent;
+        source = 'direct';
+      } else {
+        alert('Enter either UB Consume + Total LCD or Direct Percentage.');
+        return;
+      }
+
+      applyPercentage(percentage, source);
+    }
+
+    // ---------- SERVER CALLS ----------
+
+    async function saveToHistory() {
+      const calc = window.currentCalculation || {};
+      const attempt       = calc.attempt || parseFloat(document.getElementById('iqcAttempt').value) || 0;
+      const total         = calc.total   || parseFloat(document.getElementById('totalInwarranty').value) || 0;
+      const directPercent = calc.directPercent || parseFloat(document.getElementById('directPercentage').value) || 0;
+
+      const percentageText = document.getElementById('percentage').textContent;
+      const scoreText      = document.getElementById('score').textContent.split(' / ')[0];
+      const percentage = parseFloat(percentageText.replace('%', ''));
+
+      const dateField = document.getElementById('ubDate').value;
+      const finalDate = dateField || new Date().toISOString().slice(0, 10);
+
+      if (!((attempt > 0 && total > 0) || directPercent > 0)) {
+        alert('Please calculate first.');
+        return;
+      }
+
+      const source = calc.source || (attempt > 0 && total > 0 ? 'formula' : 'direct');
+
+      const payload = {
+        date: finalDate,
+        source,
+        ubConsume: attempt,
+        totalLCD: total,
+        directPercent: directPercent,
+        percentage: percentage.toFixed(2),
+        score: parseFloat(scoreText).toFixed(1)
+      };
+
+      const editingId = ubEditingId;
+
+      try {
+        let res;
+        if (editingId) {
+          // UPDATE existing row
+          res = await fetch(`/ub-repair/edit/${editingId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+        } else {
+          // INSERT new row
+          res = await fetch('/ub-repair/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') {
+          alert('Save failed: ' + (data.message || 'Unknown error'));
+          return;
+        }
+
+        if (editingId) {
+          alert('Entry updated!');
+        } else {
+          alert('Saved to history!');
+        }
+
+        ubEditingId = null;
+        ubEditingSource = null;
+        document.getElementById('saveBtn').textContent = 'Save to History';
+        if (historyVisible) loadHistory();
+      } catch (err) {
+        console.error(err);
+        alert('Network error while saving.');
+      }
+    }
+
+    async function fetchHistoryFromServer() {
+      try {
+        const res = await fetch('/ub-repair/history');
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') {
+          console.error(data);
+          return [];
+        }
+        return data.items || [];
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
+    }
+
+    // Start edit: load row into form, user recalc, then Save updates DB
+    async function startEdit(id) {
+      const records = await fetchHistoryFromServer();
+      const rec = records.find(r => String(r.id) === String(id));
+      if (!rec) return;
+
+      document.getElementById('ubDate').value          = rec.record_date || '';
+      document.getElementById('iqcAttempt').value      = rec.ub_consume || '';
+      document.getElementById('totalInwarranty').value = rec.total_lcd || '';
+      document.getElementById('directPercentage').value= rec.direct_percent || '';
+
+      applyPercentage(parseFloat(rec.percentage) || 0, rec.source || 'direct');
+
+      ubEditingId = id;
+      ubEditingSource = rec.source || 'direct';
+      document.getElementById('saveBtn').textContent = 'Update Entry';
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      try {
+        const res = await fetch(`/ub-repair/delete/${id}`, {method: 'DELETE'});
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') {
+          alert('Delete failed: ' + (data.message || 'Unknown error'));
+          return;
+        }
+        loadHistory();
+      } catch (err) {
+        console.error(err);
+        alert('Network error while deleting.');
+      }
+    }
+
+    // ---------- HISTORY RENDER ----------
+
+    async function loadHistory() {
+      const list = document.getElementById('historyList');
+      const history = await fetchHistoryFromServer();
+
+      if (history.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: #666;">No history entries yet.</p>';
+        return;
+      }
+
+      let html = `
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Source</th>
+                <th>UB Consume</th>
+                <th>Total LCD</th>
+                <th>Direct %</th>
+                <th>Percentage</th>
+                <th>Score / 5</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      html += history.map(entry => `
+        <tr>
+          <td>${entry.record_date}</td>
+          <td>${entry.source}</td>
+          <td>${entry.ub_consume > 0 ? entry.ub_consume : '-'}</td>
+          <td>${entry.total_lcd > 0 ? entry.total_lcd : '-'}</td>
+          <td>${entry.direct_percent > 0 ? entry.direct_percent + '%' : '-'}</td>
+          <td>${entry.percentage}</td>
+          <td>${entry.score}</td>
+          <td>
+            <button class="edit-btn" onclick="startEdit(${entry.id})">Edit</button>
+            <button class="delete-btn" onclick="deleteEntry(${entry.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      list.innerHTML = html;
+    }
+
+    function toggleHistory() {
+      const section = document.getElementById('historySection');
+      historyVisible = !historyVisible;
+      section.classList.toggle('active', historyVisible);
+      const btn = document.getElementById('historyBtn');
+      if (historyVisible) {
+        loadHistory();
+        btn.textContent = 'Hide History';
+        document.querySelector('#historySection button').textContent = 'Hide History';
+      } else {
+        btn.textContent = 'View History';
+      }
+    }
+
+    // ---------- OTHER UI HELPERS ----------
+
+    function resetForm() {
+      document.getElementById('ubDate').value = '';
+      document.getElementById('iqcAttempt').value = '';
+      document.getElementById('totalInwarranty').value = '';
+      document.getElementById('directPercentage').value = '';
+      document.getElementById('percentage').textContent = '0.00%';
+      document.getElementById('score').textContent      = '0.0 / 5';
+      delete window.currentCalculation;
+      ubEditingId = null;
+      ubEditingSource = null;
+      document.getElementById('saveBtn').textContent = 'Save to History';
+    }
+
+    function showInfo() {
+      document.getElementById('infoModal').style.display = 'block';
+    }
+
+    function closeInfo() {
+      document.getElementById('infoModal').style.display = 'none';
+    }
+
+    window.onclick = function (event) {
+      const modal = document.getElementById('infoModal');
+      if (event.target === modal) closeInfo();
+    };
+
+    // Button bindings
+    document.getElementById('calcBtn').onclick  = calculate;
+    document.getElementById('saveBtn').onclick  = saveToHistory;
+    document.getElementById('historyBtn').onclick = toggleHistory;
+    document.getElementById('resetBtn').onclick = resetForm;
+    document.getElementById('infoBtn').onclick  = showInfo;
+
+    // expose for inline handlers in history
+    window.startEdit = startEdit;
+    window.deleteEntry = deleteEntry;
+    window.toggleHistory = toggleHistory;
+    window.closeInfo = closeInfo;
+  </script>
+</body>
+</html>

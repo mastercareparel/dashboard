@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQC Skip Percentage Calculator</title>
+    <style>
+        :root {
+            --black-primary: #000000;
+            --black-dark: #111827;
+            --black-light: #4b5563;
+            --bg-primary: #f5f3ff;
+            --card-bg: #ffffff;
+            --text-dark: #000000;
+            --text-medium: #374151;
+            --text-light: #6b7280;
+            --border: #d1d5db;
+            --border-light: #f3f4f6;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-dark);
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 6px;
+            color: var(--black-primary);
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-medium);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '📊';
+            font-size: 18px;
+        }
+
+        .tabs {
+            margin-bottom: 20px;
+        }
+
+        .tabs-header {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: var(--border-light);
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            color: var(--text-medium);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--black-primary);
+            background: var(--card-bg);
+            border-bottom-color: var(--black-primary);
+        }
+
+        .tab-btn:hover {
+            color: var(--black-primary);
+            background: var(--border-light);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: var(--text-medium);
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            outline: none;
+            transition: 0.2s ease;
+            background: var(--card-bg);
+        }
+
+        .input-group input:focus {
+            border-color: var(--black-primary);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .results {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .result-box {
+            background: var(--border-light);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-box label {
+            color: var(--text-medium);
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-top: 8px;
+            color: var(--black-primary);
+        }
+
+        .score-small {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--black-primary);
+            padding: 15px;
+            margin-top: 20px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:hover {
+            background: #111827;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .history-section {
+            margin-top: 20px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #dc2626;
+        }
+
+        .history-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s ease;
+        }
+
+        .history-item:hover {
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-1px);
+        }
+
+        .history-left {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--black-primary);
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .history-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--black-primary);
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .history-actions button:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            margin: 15% auto;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            color: var(--black-primary);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-body ul {
+            text-align: left;
+            color: var(--text-dark);
+            list-style: none;
+            padding: 0;
+        }
+
+        .modal-body li {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--border-light);
+            border-radius: 8px;
+            border-left: 3px solid var(--black-primary);
+        }
+
+        .formula {
+            background: var(--border-light);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--black-primary);
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>IQC Skip Percentage Calculator</h1>
+        <p class="subtitle">Calculate IQC skip percentage with efficiency scoring</p>
+
+        <div class="card">
+            <div class="section-title">
+                Calculation Method
+            </div>
+
+            <!-- NEW DATE INPUT -->
+            <div class="input-group" style="margin-bottom:16px;">
+                <label>Date</label>
+                <input type="date" id="record-date">
+            </div>
+
+            <div class="tabs">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab('formula')" id="formula-tab">
+                        Formula-Based
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('direct')" id="direct-tab">
+                        Direct Input
+                    </button>
+                </div>
+            </div>
+
+            <div id="formula-content" class="tab-content active">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>IQC Attempts</label>
+                        <input type="number" id="iqc-attempts" min="0" placeholder="Enter IQC attempts" oninput="handleInput()">
+                    </div>
+                    <div class="input-group">
+                        <label>Total In Warranty</label>
+                        <input type="number" id="total-inwarranty" min="1" placeholder="Enter total in warranty" oninput="handleInput()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="direct-content" class="tab-content">
+                <div class="input-group">
+                    <label>Direct Skip Percentage (%)</label>
+                    <input type="number" id="direct-percentage" min="0" max="100" step="0.01" placeholder="Enter percentage (0-100)" oninput="handleDirectInput()">
+                </div>
+            </div>
+
+            <div class="results">
+                <div class="result-box">
+                    <label>Skip Percentage</label>
+                    <span class="value" id="percentage">0.00%</span>
+                </div>
+                <div class="result-box">
+                    <label>Efficiency Score</label>
+                    <span class="value" id="score">0</span>
+                    <div class="score-small">out of 10</div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="calculateScore()">Calculate Score</button>
+        </div>
+
+        <div class="card history-section">
+            <div class="section-title">
+                Calculation History
+            </div>
+
+            <div class="history-header">
+                <div class="history-count" id="history-count">0</div>
+                <button class="clear-btn" onclick="clearAllHistory()">Clear All</button>
+            </div>
+
+            <div id="history-list">
+                <div class="no-history">
+                    <div style="font-size: 48px; margin-bottom: 8px;">📊</div>
+                    <p style="font-size: 16px; color: var(--text-medium); margin-bottom: 4px;">No History Yet</p>
+                    <p style="font-size: 14px; color: var(--text-light);">Calculate your first result above</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Scoring Information</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>≤40%: 10 marks (Target achieved - efficient skipping)</li>
+                    <li>≥45%: 0 marks (Below lower limit - risk threshold exceeded)</li>
+                    <li>40-45%: Linear scale from 10 to 0 over 5% difference</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let activeTab = 'formula';
+    let currentResult = null;
+    let iqcEditingId = null;   // row id jab edit mode me ho
+
+    function switchTab(tab) {
+        activeTab = tab;
+        document.getElementById('formula-tab').classList.toggle('active', tab === 'formula');
+        document.getElementById('direct-tab').classList.toggle('active', tab === 'direct');
+        document.getElementById('formula-content').classList.toggle('active', tab === 'formula');
+        document.getElementById('direct-content').classList.toggle('active', tab === 'direct');
+        clearResults();
+
+        if (tab === 'direct') {
+        document.getElementById('direct-percentage').focus();
+        } else {
+        document.getElementById('iqc-attempts').focus();
+        }
+    }
+
+    function handleInput() {
+        const attempts = parseFloat(document.getElementById('iqc-attempts').value) || 0;
+        const total    = parseFloat(document.getElementById('total-inwarranty').value) || 0;
+
+        if (attempts >= 0 && total > 0) {
+        const percentage = (attempts / total) * 100;
+        updateDisplay(percentage, false);
+        } else {
+        clearResults();
+        }
+    }
+
+    function handleDirectInput() {
+        const percentage = parseFloat(document.getElementById('direct-percentage').value) || 0;
+
+        if (percentage >= 0 && percentage <= 100) {
+        updateDisplay(percentage, true);
+        } else {
+        clearResults();
+        }
+    }
+
+    function calculateScore() {
+        let percentage = 0;
+        let isDirect = false;
+
+        if (activeTab === 'formula') {
+        const attempts = parseFloat(document.getElementById('iqc-attempts').value) || 0;
+        const total    = parseFloat(document.getElementById('total-inwarranty').value) || 0;
+
+        if (attempts >= 0 && total > 0 && total !== 0) {
+            percentage = (attempts / total) * 100;
+        } else {
+            alert('Please enter valid numbers for IQC Attempts and Total In Warranty');
+            return;
+        }
+        } else {
+        const directValue = parseFloat(document.getElementById('direct-percentage').value) || 0;
+
+        if (directValue >= 0 && directValue <= 100) {
+            percentage = directValue;
+            isDirect = true;
+        } else {
+            alert('Please enter a percentage between 0 and 100');
+            return;
+        }
+        }
+
+        updateDisplay(percentage, isDirect);
+        saveToHistory();
+    }
+
+    function updateDisplay(percentage, isDirect) {
+        const score = calculateScoring(percentage);
+
+        document.getElementById('percentage').textContent = percentage.toFixed(2) + '%';
+        document.getElementById('score').textContent      = score.toFixed(1);
+
+        updateScoreColor(score);
+        currentResult = {
+        percentage: parseFloat(percentage.toFixed(2)),
+        score: parseFloat(score.toFixed(1)),
+        isDirect: isDirect
+        };
+    }
+
+    function calculateScoring(percentage) {
+        const target = 40;
+        const lowerLimit = 45;
+        const maxScore = 10;
+        const difference = 5;
+
+        if (percentage <= target) {
+        return maxScore;
+        } else if (percentage >= lowerLimit) {
+        return 0;
+        } else {
+        const scoreReduction = ((percentage - target) / difference) * maxScore;
+        return Math.max(0, maxScore - scoreReduction);
+        }
+    }
+
+    function updateScoreColor(score) {
+        const scoreElement = document.getElementById('score');
+        scoreElement.style.color = getScoreColor(score);
+    }
+
+    function getScoreColor(score) {
+        if (score >= 8) return '#059669';
+        if (score >= 6) return '#d97706';
+        if (score >= 4) return '#ea580c';
+        return '#dc2626';
+    }
+
+    function clearResults() {
+        document.getElementById('percentage').textContent = '0.00%';
+        document.getElementById('score').textContent      = '0.0';
+        currentResult = null;
+    }
+
+    // ---------- SERVER CALLS ----------
+
+    async function saveToHistory() {
+        if (!currentResult) return;
+
+        const dateField = document.getElementById('record-date').value;
+        const finalDate = dateField || new Date().toISOString().slice(0, 10);
+
+        const payload = {
+            date: finalDate,
+            percentage: currentResult.percentage,
+            score: currentResult.score
+        };
+
+        const editingId = iqcEditingId ? Number(iqcEditingId) : null;
+        console.log('saveToHistory editingId =', editingId);
+
+        try {
+            let res;
+            if (editingId) {
+            // update existing row
+            res = await fetch(`/iqc-skip/edit/${editingId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            } else {
+            // insert new row
+            res = await fetch('/iqc-skip/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            }
+
+            const data = await res.json();
+            if (!res.ok || data.status !== 'ok') {
+            alert('Save failed: ' + (data.message || 'Unknown error'));
+            return;
+            }
+
+            if (editingId) {
+            showToast('Entry updated successfully!', 'success');
+            } else {
+            showToast('Calculation saved to history!', 'success');
+            }
+
+            iqcEditingId = null;
+            document.getElementById('history-count').textContent = '...';
+            await updateHistoryDisplay();
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving.');
+        }
+        }
+
+    async function fetchHistoryFromServer() {
+        try {
+        const res = await fetch('/iqc-skip/history');
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') {
+            console.error(data);
+            return [];
+        }
+        return data.items || [];
+        } catch (err) {
+        console.error(err);
+        return [];
+        }
+    }
+
+    async function editHistoryEntry(id) {
+        const history = await fetchHistoryFromServer();
+        const entry = history.find(e => String(e.id) === String(id));
+        if (!entry) return;
+
+        // 1) Date normalize karke input me daalo
+        let existingDate = entry.record_date;
+        if (existingDate) {
+            const d = new Date(existingDate);
+            if (!isNaN(d.getTime())) {
+            existingDate = d.toISOString().slice(0, 10);  // YYYY-MM-DD
+            }
+        }
+        document.getElementById('record-date').value = existingDate || '';
+
+        // 2) Form ke fields fill karo (IDs apne HTML ke hisaab se)
+        document.getElementById('iqc-attempts').value      = entry.iqc_attempts ?? '';
+        document.getElementById('total-inwarranty').value  = entry.total_in_warranty ?? '';
+
+        // 3) currentResult set karo (agar bina recalc ke save kare)
+        currentResult = {
+            percentage: entry.percentage,
+            score: entry.score
+        };
+
+        // 4) Editing mode ON
+        iqcEditingId = Number(entry.id);
+        console.log('Editing entry id =', iqcEditingId);
+
+        // 5) Optional: form tak scroll
+        const calcSection = document.getElementById('calculator-section');
+        if (calcSection && calcSection.scrollIntoView) {
+            calcSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        }
+
+    async function deleteHistoryEntry(id) {
+        if (!confirm('Delete this entry from history?')) return;
+        try {
+        const res = await fetch(`/iqc-skip/delete/${id}`, {method: 'DELETE'});
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') {
+            alert('Delete failed: ' + (data.message || 'Unknown error'));
+            return;
+        }
+        showToast('Entry deleted', 'info');
+        await updateHistoryDisplay();
+        } catch (err) {
+        console.error(err);
+        alert('Network error while deleting.');
+        }
+    }
+
+    async function clearAllHistory() {
+        if (!confirm('Clear all history entries? This cannot be undone.')) return;
+
+        // server side: delete sab rows user ke
+        try {
+        const history = await fetchHistoryFromServer();
+        await Promise.all(
+            history.map(e =>
+            fetch(`/iqc-skip/delete/${e.id}`, {method: 'DELETE'})
+            )
+        );
+        showToast('History cleared', 'success');
+        await updateHistoryDisplay();
+        } catch (err) {
+        console.error(err);
+        alert('Network error while clearing history.');
+        }
+    }
+
+    // ---------- HISTORY RENDER ----------
+
+    async function updateHistoryDisplay() {
+        const historyList  = document.getElementById('history-list');
+        const historyCount = document.getElementById('history-count');
+        const items        = await fetchHistoryFromServer();
+
+        if (!items.length) {
+            historyList.innerHTML = `
+            <div class="no-history">
+                <div style="font-size: 48px; margin-bottom: 8px;">📊</div>
+                <p style="font-size: 16px; color: var(--text-medium); margin-bottom: 4px;">No History Yet</p>
+                <p style="font-size: 14px; color: var(--text-light);">Calculate your first result above</p>
+            </div>
+            `;
+            historyCount.textContent = '0';
+            return;
+        }
+
+        historyCount.textContent = String(items.length);
+
+        historyList.innerHTML = items.map(entry => {
+            let displayDate = entry.record_date;
+
+            if (displayDate) {
+            const d = new Date(displayDate);
+            if (!isNaN(d.getTime())) {
+                displayDate = d.toISOString().slice(0, 10);  // YYYY-MM-DD
+            }
+            } else {
+            displayDate = '-';
+            }
+
+            return `
+            <div class="history-item">
+                <div class="history-left">
+                <div class="history-date">${displayDate}</div>
+                <div class="history-result">
+                    <span class="history-percentage">${entry.percentage}%</span>
+                    <span class="history-divider">/</span>
+                    <span class="history-marks">${entry.score}</span>
+                </div>
+                </div>
+                <div class="history-actions">
+                <button class="history-action" onclick="editHistoryEntry(${entry.id})" title="Edit">
+                    <span style="margin-right: 4px;">✏️</span>Edit
+                </button>
+                <button class="history-action" onclick="deleteHistoryEntry(${entry.id})" title="Delete">
+                    <span style="margin-right: 4px;">×</span>Delete
+                </button>
+                </div>
+            </div>
+            `;
+        }).join('');
+        }
+
+
+    // ---------- TOAST & MODAL ----------
+
+    function showToast(message, type) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#059669' : '#ef4444'};
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        font-weight: 500;
+        font-size: 14px;
+        max-width: 300px;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateHistoryDisplay();
+        document.getElementById('iqc-attempts').focus();
+    });
+    </script>
+
+</body>
+</html>

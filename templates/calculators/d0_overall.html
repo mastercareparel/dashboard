@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>D+0 SPEED (OVERALL) — Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f5f4ff; --card:#fff; --accent:#6b57ff; --muted:#7a6ea3;
+    }
+    body{
+      margin:0; font-family:"Poppins",sans-serif; background:var(--bg); color:#232034;
+      padding:28px;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{max-width:980px;margin:0 auto;}
+    h1{margin:6px 0 0;font-size:28px;color:#2b1d52;font-weight:700}
+    p.lead{margin:6px 0 18px;color:var(--muted);}
+    .card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(56,40,120,0.06);}
+    .section-title{font-weight:700;color:#2b1d52;margin-bottom:12px;font-size:16px;}
+    label{display:block;font-size:13px;color:#52477a;margin-bottom:6px;}
+    input[type=number], input[type=date]{width:100%;padding:10px;border-radius:10px;border:1px solid #e6e0ff;font-size:15px;}
+    .btn{display:inline-block;padding:10px 16px;border-radius:10px;border:0;color:#fff;background:var(--accent);cursor:pointer;font-weight:700;}
+    .btn.secondary{background:#ff6b6b;}
+    .small-btn{padding:6px 10px;border-radius:8px;border:0;font-weight:600;cursor:pointer;}
+    .save{background:#2ea44f;color:white;}
+    .edit{background:#007bff;color:white;}
+    .delete{background:#d64545;color:white;}
+    .results{background:#fbfaff;padding:12px;border-radius:10px;border:1px solid #efe9ff;margin-top:14px;}
+    .big{font-size:20px;color:var(--accent);font-weight:700;}
+    table{width:100%;border-collapse:collapse;margin-top:12px;}
+    th,td{padding:8px 10px;border-bottom:1px solid #f0ebff;text-align:left;font-size:13px;}
+    .muted{color:#8c84a8;font-size:13px;}
+    .actions{display:flex;gap:8px;justify-content:center;}
+    .records-card {height: 500px; display: flex; flex-direction: column; overflow: hidden;}
+    .records-card #recordsTable {flex: 1; overflow-y: auto; max-height: 400px; margin-top: 0; border: 1px solid #e6e0ff; display: block;}
+    .records-card thead {display: table; width: 100%; table-layout: fixed;}
+    .records-card tbody {display: block; overflow-y: auto; max-height: 320px; min-height: 100px;}
+    .records-card tr {display: table; width: 100%; table-layout: fixed;}
+    .records-card th:nth-child(1), .records-card td:nth-child(1) { width: 25%; }
+    .records-card th:nth-child(2), .records-card td:nth-child(2) { width: 15%; }
+    .records-card th:nth-child(3), .records-card td:nth-child(3) { width: 20%; }
+    .records-card th:nth-child(4), .records-card td:nth-child(4) { width: 15%; }
+    .records-card th:nth-child(5), .records-card td:nth-child(5) { width: 25%; }
+    @media (max-width:900px){
+      .wrap{padding:14px;}
+    }
+    @media (max-width: 900px) {
+      .records-card {height: 450px;}
+      .records-card #recordsTable {max-height: 350px;}
+      .records-card tbody {max-height: 280px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>D+0 SPEED (OVERALL)</h1>
+    <p class="lead">Enter totals and get Actual Call, % D+0 and D+0 Score instantly</p>
+
+    <div id="calculatorPage" style="display:block;">
+      <div class="card">
+        <div class="section-title">Input</div>
+        <form id="d0Form" onsubmit="return false;">
+          <!-- NEW: Date field -->
+          <div style="margin-bottom:12px">
+            <label>Date</label>
+            <input id="recordDate" type="date" required>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <label>Total Calls</label>
+            <input id="totalCall" type="number" min="0" step="1" value="0" required>
+          </div>
+          <div style="margin-bottom:12px">
+            <label>Cancel Calls</label>
+            <input id="cancelCall" type="number" min="0" step="1" value="0" required>
+          </div>
+          <div style="margin-bottom:12px">
+            <label>Good Delivered Calls</label>
+            <input id="goodDelivered" type="number" min="0" step="1" value="0" required>
+          </div>
+          <div style="margin-bottom:12px">
+            <label>Pending Calls</label>
+            <input id="pendingCall" type="number" min="0" step="1" value="0" required>
+          </div>
+
+          <!-- NEW: Direct % D+0 -->
+          <div style="margin-bottom:12px">
+            <label>Direct % D+0 (optional)</label>
+            <input id="directPercent" type="number" min="0" max="100" step="0.01"
+                   placeholder="Enter % D+0 directly, e.g. 76.19">
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <button type="button" class="btn" id="calcBtn">Calculate</button>
+            <button type="button" class="btn secondary" id="resetBtn">Reset</button>
+            <div style="flex:1"></div>
+            <button type="button" class="small-btn save" id="saveBtn">Save Record</button>
+          </div>
+        </form>
+        <div class="results" id="resultsBox" style="display:none">
+          <div><span class="muted">Actual Call</span><div class="big" id="actualCall">0</div></div>
+          <div style="margin-top:8px"><span class="muted">Percentage of D+0</span><div class="big" id="percentD0">0%</div></div>
+          <div style="margin-top:8px"><span class="muted">D+0 Score</span><div class="big" id="d0Score">0</div></div>
+        </div>
+        <div style="margin-top:18px;">
+          <button type="button" class="btn" id="viewRecordsBtn">View Saved Records</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="recordsPage" style="display:none;">
+      <div class="card records-card">
+        <div class="section-title">Saved Records</div>
+        <div class="muted">Records are saved locally in your browser (localStorage).</div>
+        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+          <button type="button" class="btn" id="refreshBtn">Refresh</button>
+          <input type="text" id="searchInput" placeholder="Search Date/Actual..." style="padding:8px 12px;border-radius:8px;border:1px solid #e6e0ff;font-size:14px;">
+          <select id="scoreFilter" style="padding:8px 12px;border-radius:8px;border:1px solid #e6e0ff;font-size:14px;">
+            <option value="">All Scores</option>
+            <option value="0">Score = 0</option>
+            <option value="1">Score = 1</option>
+            <option value="2">Score = 2</option>
+            <option value="3">Score = 3</option>
+            <option value="4">Score = 4</option>
+            <option value="5">Score = 5</option>
+            <option value="gt0">Score > 0</option>
+          </select>
+        </div>
+        <table id="recordsTable">
+          <thead>
+            <tr><th>Date</th><th>Actual</th><th>% D+0</th><th>Score</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+        <div style="margin-top:18px;">
+          <button type="button" class="btn" id="backToCalcBtn">Back to Calculator</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const showCalculatorPage = function () {
+    document.getElementById('calculatorPage').style.display = 'block';
+    document.getElementById('recordsPage').style.display = 'none';
+  };
+  const showRecordsPage = function () {
+    document.getElementById('calculatorPage').style.display = 'none';
+    document.getElementById('recordsPage').style.display = 'block';
+    renderRecords();
+  };
+
+  let editingIndex = -1;   // UI index
+  let editingId    = null; // DB id for edit
+
+  function toNumberSafe(v) {
+    const n = Number(v);
+    if (!isFinite(n) || isNaN(n)) return 0;
+    return Math.max(0, Math.floor(n));
+  }
+
+  // MAIN CALC
+  function calculateAll() {
+    const total     = toNumberSafe(document.getElementById('totalCall').value);
+    const cancel    = toNumberSafe(document.getElementById('cancelCall').value);
+    const delivered = toNumberSafe(document.getElementById('goodDelivered').value);
+    const pending   = toNumberSafe(document.getElementById('pendingCall').value);
+    const directP   = Number(document.getElementById('directPercent').value || 0);
+    const dateInput = document.getElementById('recordDate').value;
+
+    const actual = Math.max(0, total - cancel);
+
+    let percentage = 0;
+    if (directP > 0) {
+      percentage = directP;
+    } else if (actual > 0) {
+      percentage = (delivered / actual) * 100;
+    }
+
+    let score = 0;
+    if (percentage >= 75) {
+      score = 5;
+    } else if (percentage <= 65) {
+      score = 0;
+    } else {
+      score = 5 * ((percentage - 65) / 10);
+    }
+
+    const percentRounded = Math.round(percentage * 100) / 100;
+    const scoreRounded   = Math.round(score * 100) / 100;
+
+    document.getElementById('actualCall').textContent  = actual;
+    document.getElementById('percentD0').textContent   = percentRounded.toFixed(2) + '%';
+    document.getElementById('d0Score').textContent     = scoreRounded.toFixed(2);
+    document.getElementById('resultsBox').style.display = 'block';
+
+    const finalDate = dateInput || new Date().toISOString().slice(0, 10);
+
+    return {
+      date: finalDate,
+      total,
+      cancel,
+      delivered,
+      pending,
+      actual,
+      percentage: percentRounded,
+      score: scoreRounded,
+      directPercent: directP
+    };
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  }
+
+  // -------- SERVER HELPERS --------
+
+  async function fetchRecordsFromServer() {
+    try {
+      const res  = await fetch('/d0-overall/history');
+      const data = await res.json();
+      if (data.status !== 'ok') return [];
+      return data.items || [];
+    } catch (e) {
+      console.error('Fetch history error', e);
+      return [];
+    }
+  }
+
+  async function saveRecordToServer(obj) {
+    const res = await fetch('/d0-overall/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(obj)
+    });
+    return res.json();
+  }
+
+  async function updateRecordOnServer(id, obj) {
+    const res = await fetch(`/d0-overall/edit/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(obj)
+    });
+    return res.json();
+  }
+
+  async function deleteRecordOnServer(id) {
+    const res = await fetch(`/d0-overall/delete/${id}`, {
+      method: 'DELETE'
+    });
+    return res.json();
+  }
+
+  // -------- EDIT / DELETE --------
+
+  async function editRecord(index) {
+    const records = await fetchRecordsFromServer();
+    const r = records[index];
+    if (!r) return;
+
+    editingIndex = index;
+    editingId    = r.id;
+
+    document.getElementById('recordDate').value     = r.record_date.length === 10 ? r.record_date : '';
+    document.getElementById('totalCall').value      = '';   // original totals store nahi kiye, isliye 0
+    document.getElementById('cancelCall').value     = '';
+    document.getElementById('goodDelivered').value  = '';
+    document.getElementById('pendingCall').value    = '';
+    document.getElementById('directPercent').value  = r.percent_d0;  // direct % se recalc
+
+    // show current calc
+    calculateAll();
+    document.getElementById('saveBtn').textContent = 'Update Record';
+    showCalculatorPage();
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('Delete this record?')) return;
+
+    try {
+      const out = await deleteRecordOnServer(id);
+      if (out.status === 'ok') {
+        renderRecords();
+      } else {
+        alert('Delete error: ' + (out.message || 'Unknown error'));
+      }
+    } catch (e) {
+      console.error('Delete error', e);
+      alert('Network/server error while deleting');
+    }
+  }
+
+  // -------- BUTTON HANDLERS --------
+
+  document.getElementById('calcBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+    calculateAll();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    document.getElementById('d0Form').reset();
+    document.getElementById('resultsBox').style.display = 'none';
+    document.getElementById('totalCall').value = 0;
+    document.getElementById('cancelCall').value = 0;
+    document.getElementById('goodDelivered').value = 0;
+    document.getElementById('pendingCall').value = 0;
+    document.getElementById('directPercent').value = '';
+    editingIndex = -1;
+    editingId    = null;
+    document.getElementById('saveBtn').textContent = 'Save Record';
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async function () {
+    const obj = calculateAll();
+
+    try {
+      let out;
+      if (editingId) {
+        out = await updateRecordOnServer(editingId, obj);
+      } else {
+        out = await saveRecordToServer(obj);
+      }
+
+      if (out.status === 'ok') {
+        alert(editingId ? 'Record updated ✔' : 'Record saved ✔');
+        editingIndex = -1;
+        editingId    = null;
+        document.getElementById('saveBtn').textContent = 'Save Record';
+        renderRecords();
+      } else {
+        alert('Save error: ' + (out.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Save error', err);
+      alert('Network/server error while saving');
+    }
+  });
+
+  document.getElementById('viewRecordsBtn').addEventListener('click', function () {
+    showRecordsPage();
+  });
+  document.getElementById('backToCalcBtn').addEventListener('click', function () {
+    showCalculatorPage();
+  });
+
+  let filterText = '';
+  let filterScore = '';
+  document.getElementById('searchInput').addEventListener('input', function (e) {
+    filterText = e.target.value.trim().toLowerCase();
+    renderRecords();
+  });
+  document.getElementById('scoreFilter').addEventListener('change', function (e) {
+    filterScore = e.target.value;
+    renderRecords();
+  });
+  document.getElementById('refreshBtn').addEventListener('click', function () {
+    filterText = '';
+    filterScore = '';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('scoreFilter').value = '';
+    renderRecords();
+  });
+
+  window.editRecord   = editRecord;
+  window.deleteRecord = deleteRecord;
+
+  // -------- RENDER HISTORY TABLE --------
+
+  async function renderRecords() {
+    const body = document.getElementById('recordsBody');
+    let records = await fetchRecordsFromServer();
+
+    if (filterText) {
+      const t = filterText.toLowerCase();
+      records = records.filter(r =>
+        String(r.record_date || '').toLowerCase().includes(t) ||
+        String(r.actual).includes(t) ||
+        String(r.score).includes(t)
+      );
+    }
+
+    if (filterScore === '0') {
+      records = records.filter(r => Number(r.score) === 0);
+    } else if (['1', '2', '3', '4', '5'].includes(filterScore)) {
+      records = records.filter(r => Number(r.score) === Number(filterScore));
+    } else if (filterScore === 'gt0') {
+      records = records.filter(r => Number(r.score) > 0);
+    }
+
+    if (records.length === 0) {
+      body.innerHTML = '<tr><td colspan="5" class="muted">No saved records yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = records.map((r, index) => `
+      <tr>
+        <td>${escapeHtml(r.record_date || '')}</td>
+        <td>${r.actual}</td>
+        <td>${Number(r.percent_d0).toFixed(2)}%</td>
+        <td>${Number(r.score).toFixed(2)}</td>
+        <td class="actions">
+          <button type="button" class="small-btn edit" onclick="editRecord(${index})">Edit</button>
+          <button type="button" class="small-btn delete" onclick="deleteRecord(${r.id})">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  renderRecords();
+});
+</script>
+
+
+</body>
+</html>
