@@ -1,0 +1,21 @@
+# Environment variables
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# Local notes / configs
+code(host).txt
+nohost.py

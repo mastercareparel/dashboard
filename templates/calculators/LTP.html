@@ -82,7 +82,6 @@
       <button class="nav-btn" id="percentNavBtn">Percentage</button>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboardPage">
       <div style="margin-bottom:22px;display:flex;align-items:center;gap:17px;">
         <label for="filterDate" style="font-weight:600;">View stats for Date:</label>
@@ -111,7 +110,6 @@
       </div>
     </div>
 
-    <!-- HISTORY -->
     <div id="historyPage" style="display:none">
       <div class="card compact">
         <div class="section-title" style="text-align:left;">Call History</div>
@@ -142,7 +140,6 @@
       </div>
     </div>
 
-    <!-- REGISTER -->
     <div id="registerPage" style="display:none">
       <div class="card input-card" style="max-width:540px;margin:0 auto;box-shadow:0 8px 32px rgba(56,40,120,0.10);padding:36px 28px;">
         <div class="section-title">Register New Call</div>
@@ -182,7 +179,6 @@
       </div>
     </div>
 
-    <!-- PERCENTAGE PAGE -->
     <div id="percentagePage" style="display:none">
       <div class="card compact percent-layout">
         <div class="section-title">Direct Percentage Calculator</div>
@@ -214,7 +210,7 @@
   </div>
 
   <script>
-  let editingRecordId = null;   // DB id for editing
+  let editingRecordId = null;  
 
   const dashBtn    = document.getElementById('dashNavBtn'),
         histBtn    = document.getElementById('historyNavBtn'),
@@ -240,8 +236,6 @@
     if (page === 'history')   fetchAndRenderHistory();
     if (page === 'dashboard') fetchAndUpdateStats();
   }
-
-  // -------- FORM SUBMIT (CREATE / UPDATE) --------
 
   document.getElementById('exltpForm').onsubmit = async function (e) {
     e.preventDefault();
@@ -312,8 +306,6 @@
     });
   }
 
-  // -------- VALIDATION + HELPERS --------
-
   function validateForm() {
     let valid = true;
     document.querySelectorAll('.error-msg').forEach(el => {
@@ -355,14 +347,13 @@
     return Math.floor((close - reg) / (1000 * 60 * 60 * 24));
   }
   function searchDashboard() {
-    // sirf current selected date ke basis par stats dikhayega
     fetchAndUpdateStats();
   }
 
   function refreshDashboard() {
   const filterDateEl = document.getElementById('filterDate');
-  if (filterDateEl) filterDateEl.value = '';  // date clear
-  fetchAndUpdateStats();                      // saare dates ka data
+  if (filterDateEl) filterDateEl.value = '';  
+  fetchAndUpdateStats();                      
 }
 
 
@@ -383,8 +374,6 @@
     return (1 - ratio) * weight;
   }
 
-  // -------- DASHBOARD (STATS FROM DB) --------
-
   async function fetchAndUpdateStats() {
     try {
       const res  = await fetch('/ltp-history');
@@ -398,9 +387,9 @@
       let filtered = records;
 
       if (filterDate) {
-        const sel = new Date(filterDate);           // user-selected date
+        const sel = new Date(filterDate);          
         filtered = records.filter(r => {
-          const d = new Date(r.date_reg);          // DB date string (same as history)[web:37]
+          const d = new Date(r.date_reg);          
           return d.toDateString() === sel.toDateString();
         });
       }
@@ -434,11 +423,10 @@
     }
   }
 
-  // helper: HTTP date string -> "YYYY-MM-DD"
 function onlyDate(httpDate) {
   if (!httpDate) return '';
-  const d = new Date(httpDate);                 // parses "Tue, 09 Dec 2025 00:00:00 GMT"[web:4][web:37]
-  if (isNaN(d.getTime())) return httpDate;      // safety agar parse fail ho
+  const d = new Date(httpDate);                
+  if (isNaN(d.getTime())) return httpDate;      
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -509,8 +497,6 @@ async function fetchAndRenderHistory() {
     fetchAndRenderHistory();
   };
 
-  // -------- EDIT / DELETE (DB) --------
-
   window.editRecord = async function (id) {
     try {
       const res  = await fetch('/ltp-history');
@@ -550,9 +536,7 @@ async function fetchAndRenderHistory() {
 
   window.applyQuickFilter = function () { fetchAndRenderHistory(); };
 
-  // CSV export & reset all now use DB data
-
-  window.exportToCsv = async function () {
+   window.exportToCsv = async function () {
     const res  = await fetch('/ltp-history');
     const data = await res.json();
     if (data.status !== 'ok' || !(data.items || []).length) {
@@ -576,11 +560,9 @@ async function fetchAndRenderHistory() {
 
   window.resetAll = async function () {
     if (!confirm('Clear all?')) return;
-    // simple approach: delete all user rows via separate API or manual SQL
+    
     alert('For full reset, clear LTP rows in DB (or add /ltp-reset route).');
   };
-
-  // -------- PERCENTAGE CALC (UNCHANGED) --------
 
   const directLtpInput   = document.getElementById('directLtp');
   const directExInput    = document.getElementById('directExltp');
@@ -607,7 +589,6 @@ async function fetchAndRenderHistory() {
     calcPercentBtn.addEventListener('click', runDirectCalc);
   }
 
-  // init
   setPage('dashboard');
   fetchAndUpdateStats();
 </script>

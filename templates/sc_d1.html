@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SC+ Repair Speed (D+1)</title>
+
+<!-- Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" rel="stylesheet">
+
+<style>
+:root {
+  --primary:#7d3dfc;
+  --primary-light:#9f6bff;
+  --bg:#f4f1ff;
+  --card:#ffffff;
+  --text:#1f1b2e;
+  --border:#e6ddff;
+  --radius:14px;
+}
+
+body {
+  margin:0;
+  font-family: Inter, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ================= HEADER ================ */
+header {
+  background: var(--card);
+  border-bottom:1px solid var(--border);
+  padding: 14px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.logo {
+  font-size:19px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--primary);
+}
+
+nav {
+  display:flex;
+  gap:10px;
+}
+
+nav button {
+  border:none;
+  background:none;
+  padding:8px 14px;
+  font-size:15px;
+  cursor:pointer;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:0.2s;
+}
+
+nav button:hover {
+  background:#f0e8ff;
+}
+
+nav button.active {
+  background:var(--primary);
+  color:white;
+}
+
+/* ================= MAIN LAYOUT ================ */
+main {
+  padding:22px;
+  max-width:1000px;
+  margin:auto;
+}
+
+/* ================= CARDS ================ */
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 22px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  color:var(--primary);
+  font-size:18px;
+}
+
+/* ================= INPUTS ================ */
+input, select {
+  width:100%;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-top:6px;
+  margin-bottom:14px;
+  font-size:15px;
+}
+
+/* ================= BUTTONS ================ */
+.btn {
+  width:100%;
+  background:var(--primary);
+  color:white;
+  border:none;
+  padding:12px;
+  font-size:15px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.2s;
+}
+.btn:hover { background:var(--primary-light); }
+
+.btn-small {
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:14px;
+  border:none;
+  cursor:pointer;
+}
+
+/* Status */
+.status {
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  color:white;
+}
+.open { background:#979797; }
+.closed { background:#5cbb5c; }
+
+/* ================= DASHBOARD ================= */
+.metric {
+  padding:14px;
+  background:#faf7ff;
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  font-size:16px;
+}
+
+/* ================= TABLE ================= */
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th, td {
+  padding:10px;
+  text-align:left;
+  border-bottom:1px solid #eee;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><i class="ri-flashlight-fill"></i> SC+ Repair Speed (D+1)</div>
+  <nav>
+    <button id="tab-entry" class="active"><i class="ri-calculator-fill"></i> Calculator</button>
+    <button id="tab-history"><i class="ri-time-line"></i> History</button>
+    <button id="tab-dashboard"><i class="ri-bar-chart-fill"></i> Dashboard</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ENTRY PAGE -->
+<section id="page-entry">
+  <div class="card">
+    <h3><i class="ri-add-circle-fill"></i> Register AD Call</h3>
+    <input id="serviceNo" placeholder="Service Number"/>
+    <label>Registration Date</label>
+    <input id="registrationDate" type="date"/>
+    <button class="btn" onclick="addService()">+ Add Service</button>
+  </div>
+
+  <div class="card">
+    <h3><i class="ri-file-list-2-fill"></i> Open Calls</h3>
+    <input id="searchOpen" placeholder="Search..." oninput="renderOpen()">
+    <div id="openList"></div>
+  </div>
+</section>
+
+<!-- HISTORY PAGE -->
+<section id="page-history" style="display:none;">
+  <div class="card">
+    <h3><i class="ri-time-line"></i> History</h3>
+    <input id="searchHistory" placeholder="Search Service No or Date (yyyy-mm-dd)">
+    <button id="btnSearchHistory" class="btn-small" style="background:var(--primary);color:white;">Search</button>
+    <button id="btnRefreshHistory" class="btn-small" style="background:#ddd;margin-left:6px;">Refresh</button>
+    <div id="historyTable"></div>
+  </div>
+</section>
+
+<!-- DASHBOARD PAGE -->
+<section id="page-dashboard" style="display:none;">
+  <div class="card">
+    <h3><i class="ri-bar-chart-fill"></i> Dashboard</h3>
+    <p style="margin-bottom:18px;color:#6d5f99;">Overview of your repair performance</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;">
+      
+      <div class="metric" style="border-left:4px solid var(--primary);">
+        <div>
+          <div style="font-size:14px;color:#6d5f99;">Total Calls</div>
+          <div style="font-size:22px;font-weight:600;" id="mTotal"></div>
+        </div>
+        <i class="ri-phone-fill" style="font-size:22px;color:var(--primary);"></i>
+      </div>
+
+      <div class="metric" style="border-left:4px solid #03b57b;">
+        <div>
+          <div style="font-size:14px;color:#6d5f99;">Closed ≤ 2 Days</div>
+          <div style="font-size:22px;font-weight:600;" id="mClosed"></div>
+        </div>
+        <i class="ri-check-double-fill" style="font-size:22px;color:#03b57b;"></i>
+      </div>
+
+      <div class="metric" style="border-left:4px solid #ffb400;">
+        <div>
+          <div style="font-size:14px;color:#6d5f99;">Percentage</div>
+          <div style="font-size:22px;font-weight:600;color:#ffb400;" id="mPerc"></div>
+        </div>
+        <i class="ri-line-chart-fill" style="font-size:22px;color:#ffb400;"></i>
+      </div>
+
+      <div class="metric" style="border-left:4px solid #ff4d4d;">
+        <div>
+          <div style="font-size:14px;color:#6d5f99;">Score</div>
+          <div style="font-size:22px;font-weight:600;color:#ff4d4d;" id="mScore"></div>
+        </div>
+        <i class="ri-bullseye-fill" style="font-size:22px;color:#ff4d4d;"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</main>
+<script>
+
+let historyItems = []; // store for search & refresh
+
+function formatDate(d) {
+  if (!d) return "-";
+  const date = new Date(d);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+async function loadHistory() {
+  const r = await fetch("/sc-d1/history");
+  const data = await r.json();
+
+  historyItems = data.items; // store once
+
+  renderOpen(data.items);
+  renderHistory(data.items);
+  refreshDashboard(data.items);
+}
+
+// Create new service
+async function addService(){
+  if(!serviceNo.value || !registrationDate.value){
+    alert("Fill all fields");
+    return;
+  }
+
+  const payload = {
+    service_no: serviceNo.value,
+    reg_date: registrationDate.value
+  };
+
+  const r = await fetch("/sc-d1/save", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(payload)
+  });
+
+  const res = await r.json();
+  if(res.status === "ok"){
+    serviceNo.value="";
+    registrationDate.value="";
+    loadHistory();
+  } else {
+    alert("Failed");
+  }
+}
+
+async function editCall(id) {
+  let newReg = prompt("New Registration Date (yyyy-mm-dd):");
+  let newClose = prompt("New Close Date (yyyy-mm-dd):");
+
+  if (!newReg && !newClose) return;
+
+  await fetch("/sc-d1/edit/" + id, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reg_date: newReg || null,
+      close_date: newClose || null
+    })
+  });
+
+  loadHistory();
+}
+
+
+
+async function closeCall(id){
+  let d = document.getElementById("close"+id).value;
+  if(!d) return alert("Pick close date");
+
+  await fetch("/sc-d1/close/"+id,{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ close_date:d })
+  });
+
+  loadHistory();
+}
+
+async function deleteCall(id){
+  if(!confirm("Delete?")) return;
+  await fetch("/sc-d1/delete/"+id,{ method:"DELETE" });
+  loadHistory();
+}
+
+function daysDiff(a,b){
+  return Math.floor((new Date(b)-new Date(a))/(1000*60*60*24));
+}
+
+function renderOpen(items){
+  let q = searchOpen.value?.toLowerCase() || "";
+  let list = items.filter(x => !x.close_date && x.service_no.toLowerCase().includes(q));
+
+  openList.innerHTML = list.length ? list.map(x => `
+    <div style="display:flex;justify-content:space-between;margin:6px 0;">
+      <div>${x.service_no} — ${formatDate(x.reg_date)}</div>
+      <div>
+        <input type="date" id="close${x.id}" style="width:auto;">
+        <button class="btn-small" style="background:var(--primary);color:white;" onclick="closeCall(${x.id})">Close</button>
+      </div>
+    </div>
+  `).join("") : "No open calls";
+}
+
+function renderHistory(items){
+  historyTable.innerHTML = `
+  <table>
+    <tr>
+      <th>Service Number</th>
+      <th>Registration</th>
+      <th>Closed</th>
+      <th>Status</th>
+      <th>≤2 Days</th>
+      <th>Actions</th>
+    </tr>
+    ${items.map(x=>{
+      let st = x.close_date ? `<span class="status closed">Closed</span>` : `<span class="status open">Open</span>`;
+      let diff = x.close_date ? daysDiff(x.reg_date, x.close_date)<=2 ? `<span style="color:green">Yes</span>`:`<span style="color:red">No</span>` : "—";
+      return `
+      <tr>
+        <td>${x.service_no}</td>
+        <td>${formatDate(x.reg_date)}</td>
+        <td>${formatDate(x.close_date)}</td>
+        <td>${st}</td>
+        <td>${diff}</td>
+        <td>
+          <button class="btn-small" onclick="editCall(${x.id})">✏️</button>
+
+          <button class="btn-small" onclick="deleteCall(${x.id})">🗑️</button>
+        </td>
+      </tr>`;
+    }).join("")}
+  </table>`;
+}
+
+function refreshDashboard(items){
+  let total = items.length;
+  let closed2 = items.filter(x => x.close_date && daysDiff(x.reg_date, x.close_date) <= 2).length;
+
+  let perc = total ? (closed2/total)*100 : 0;
+  let score = perc>=85?5 : perc<60?0 : ((perc-60)/(85-60))*5;
+
+  mTotal.textContent = total;
+  mClosed.textContent = closed2;
+  mPerc.textContent = perc.toFixed(1)+"%";
+  mScore.textContent = score.toFixed(2)+" / 5";
+}
+
+// ======== SEARCH + REFRESH LOGIC =========
+
+function applyHistorySearch(){
+  let q = searchHistory.value.toLowerCase();
+
+  let filtered = historyItems.filter(x =>
+    x.service_no.toLowerCase().includes(q) ||
+    formatDate(x.reg_date).toLowerCase().includes(q) ||
+    formatDate(x.close_date).toLowerCase().includes(q)
+  );
+
+  renderHistory(filtered);
+}
+
+function refreshHistory(){
+  searchHistory.value = "";
+  renderHistory(historyItems);
+}
+
+btnSearchHistory.onclick = applyHistorySearch;
+btnRefreshHistory.onclick = refreshHistory;
+
+// ==========================================
+
+document.getElementById("tab-entry").onclick=()=>showTab("entry");
+document.getElementById("tab-history").onclick=()=>showTab("history");
+document.getElementById("tab-dashboard").onclick=()=>{ showTab("dashboard"); loadHistory(); };
+
+function showTab(p){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+p).classList.add("active");
+  document.querySelectorAll("section").forEach(s=>s.style.display="none");
+  document.getElementById("page-"+p).style.display="block";
+}
+
+loadHistory();
+
+</script>
+
+</body>
+</html>

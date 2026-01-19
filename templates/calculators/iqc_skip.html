@@ -573,19 +573,19 @@
     }
 
     function calculateScoring(percentage) {
-        const target = 40;
-        const lowerLimit = 45;
-        const maxScore = 10;
-        const difference = 5;
+        const target = 70;      // highest %
+        const lowerLimit = 55;  // lowest %
+        const maxScore = 10;     // scoring out of 5
+        const range = target - lowerLimit;
 
-        if (percentage <= target) {
-        return maxScore;
-        } else if (percentage >= lowerLimit) {
-        return 0;
-        } else {
-        const scoreReduction = ((percentage - target) / difference) * maxScore;
-        return Math.max(0, maxScore - scoreReduction);
+        if (percentage >= target) {
+            return maxScore; // best
         }
+        if (percentage <= lowerLimit) {
+            return 0; // worst
+        }
+
+        return ((percentage - lowerLimit) / range) * maxScore;
     }
 
     function updateScoreColor(score) {
@@ -594,11 +594,12 @@
     }
 
     function getScoreColor(score) {
-        if (score >= 8) return '#059669';
-        if (score >= 6) return '#d97706';
-        if (score >= 4) return '#ea580c';
-        return '#dc2626';
+        if (score >= 10) return '#059669';   // green
+        if (score >= 7) return '#d97706';   // yellow
+        if (score >= 5) return '#ea580c';   // orange
+        return '#dc2626';                  // red
     }
+
 
     function clearResults() {
         document.getElementById('percentage').textContent = '0.00%';

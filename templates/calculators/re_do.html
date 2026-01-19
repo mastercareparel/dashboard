@@ -118,16 +118,21 @@
 function calcRedoScore(percentage) {
   percentage = parseFloat(percentage);
   if (isNaN(percentage)) return '';
-  if (percentage <= 2.08) {
+
+  const upper = 1.87;   
+  const lower = 2.87;   
+  const span  = lower - upper; 
+
+  if (percentage <= upper) {
     return 10;
-  } else if (percentage < 3.08) {
-    return 10 * (3.08 - percentage) / 1.00;
+  } else if (percentage < lower) {
+    return 10 * (lower - percentage) / span;
   } else {
     return 0;
   }
 }
 
-let editingId = null;   // DB row id
+let editingId = null;   
 
 async function saveRecordToServer(payload, id=null) {
   const url    = id ? `/re_do/edit/${id}` : `/re_do/save`;
@@ -147,7 +152,7 @@ async function saveRecordToServer(payload, id=null) {
 async function fetchRecordsFromServer() {
   const resp = await fetch("/re_do/history");
   if (!resp.ok) return [];
-  return await resp.json();      // [{id, record_date, percentage, score}, ...]
+  return await resp.json();      
 }
 
 async function deleteRecordFromServer(id) {
@@ -157,8 +162,6 @@ async function deleteRecordFromServer(id) {
     throw new Error(data.message || "Delete failed");
   }
 }
-
-// ----- form events -----
 
 document.getElementById('inputPercentage').addEventListener('input', function () {
   let val = this.value.replace(/[^0-9.]/g, '');
@@ -197,8 +200,6 @@ function resetForm() {
   editingId = null;
   document.getElementById('submitBtn').textContent = 'Submit Record';
 }
-
-// ----- table render -----
 
 async function renderRecords(filteredRecords = null) {
   const body = document.getElementById('recordsBody');
@@ -248,8 +249,6 @@ window.deleteRecord = async function (id) {
   }
 };
 
-// ----- SEARCH (sirf date se) -----
-
 document.getElementById('searchBtn').onclick = async function () {
   const searchDate = document.getElementById('searchDate').value;  // YYYY-MM-DD
   let records = await fetchRecordsFromServer();
@@ -260,14 +259,11 @@ document.getElementById('searchBtn').onclick = async function () {
   renderRecords(records);
 };
 
-// ----- REFRESH -----
-
 document.getElementById('refreshBtn').onclick = function () {
   document.getElementById('searchDate').value = '';
   renderRecords();
 };
 
-// initial load
 renderRecords();
 </script>
 

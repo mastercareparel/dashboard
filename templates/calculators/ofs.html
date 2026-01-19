@@ -1,647 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>OFS – Minimal Stock Level</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f2ff;
-      margin: 0;
-      padding: 40px 20px;
-    }
-    .card {
-      max-width: 780px;
-      margin: 20px auto;
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 32px 32px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
-    }
-    h1 {
-      text-align: center;
-      color: #7b3fe4;
-      margin-bottom: 12px;
-      font-size: 32px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #777;
-      margin-bottom: 24px;
-      font-size: 16px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-    }
-    th, td {
-      padding: 12px 8px;
-      text-align: center;
-    }
-    th {
-      color: #555;
-      font-weight: 600;
-      font-size: 13px;
-    }
-    input[type="number"], input[type="date"], input[type="text"] {
-      width: 95%;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      outline: none;
-      font-size: 13px;
-    }
-    input:focus {
-      border-color: #7b3fe4;
-      box-shadow: 0 0 0 2px rgba(123,63,228,0.15);
-    }
-    .result {
-      font-weight: 600;
-      color: #7b3fe4;
-      font-size: 14px;
-    }
-    .summary {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .summary-box {
-      flex: 1;
-      min-width: 170px;
-      min-height: 90px;
-      background: #f4ecff;
-      border-radius: 12px;
-      padding: 14px 16px;
-      text-align: center;
-    }
-    .label {
-      font-size: 12px;
-      color: #777;
-      margin-bottom: 6px;
-    }
-    .value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #7b3fe4;
-    }
-    .score-good { color: #22a745; }
-    .score-mid  { color: #f2a900; }
-    .score-bad  { color: #e33636; }
-    .footer-text {
-      margin-top: 16px;
-      font-size:13px;
-      color:#666;
-    }
-    .top-row {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      margin-bottom:16px;
-      flex-wrap:wrap;
-    }
-    .date-block {
-      font-size:13px;
-      color:#555;
-    }
-    .date-block label {
-      display:block;
-      margin-bottom:4px;
-    }
-    .btn-row {
-      margin-top:18px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .btn {
-      border:none;
-      border-radius:999px;
-      padding:8px 18px;
-      font-size:13px;
-      font-weight:600;
-      cursor:pointer;
-      color:#fff;
-    }
-    .btn-primary { background:#7b3fe4; }
-    .btn-secondary { background:#6366f1; }
-    .btn-danger { background:#ef4444; }
-    .btn-outline {
-      background:#fff;
-      color:#4b5563;
-      border:1px solid #d1d5db;
-    }
-    .btn-small {
-      padding:5px 10px;
-      font-size:11px;
-      border-radius:999px;
-    }
-    /* History page */
-    #historyPage { display:none; }
-    .page-title {
-      text-align:center;
-      font-size:26px;
-      color:#7b3fe4;
-      margin-bottom:8px;
-    }
-    .history-sub {
-      text-align:center;
-      color:#777;
-      margin-bottom:12px;
-      font-size:14px;
-    }
-    .history-table {
-      width:100%;
-      border-collapse:collapse;
-      margin-top:10px;
-      font-size:13px;
-    }
-    .history-table th, .history-table td {
-      border-bottom:1px solid #e5e7eb;
-      padding:8px 6px;
-      text-align:center;
-    }
-    .history-table th {
-      background:#f4ecff;
-      color:#4b5563;
-      font-weight:600;
-    }
-    .tag-safe {
-      padding:3px 8px;
-      border-radius:999px;
-      background:#dcfce7;
-      color:#166534;
-      font-size:11px;
-      font-weight:600;
-    }
-    .tag-risk {
-      padding:3px 8px;
-      border-radius:999px;
-      background:#fee2e2;
-      color:#b91c1c;
-      font-size:11px;
-      font-weight:600;
-    }
-    .empty-text {
-      text-align:center;
-      color:#888;
-      font-size:13px;
-      margin-top:16px;
-    }
-    .history-top {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      margin-bottom:8px;
-      flex-wrap:wrap;
-    }
-    .search-box {
-      display:flex;
-      align-items:center;
-      gap:6px;
-      font-size:13px;
-      color:#4b5563;
-    }
-    .search-box input {
-      width:180px;
-      padding:6px 8px;
-      border-radius:999px;
-      border:1px solid #d1d5db;
-      font-size:12px;
-    }
-    .loading {
-      text-align: center;
-      color: #7b3fe4;
-      font-style: italic;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>OFS Scoring</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f7f2ff; padding:28px; }
+.card { max-width:900px; margin:auto; background:white; padding:28px; border-radius:18px; box-shadow:0 8px 22px rgba(0,0,0,0.08); }
+h1 { text-align:center; color:#7b3fe4; margin-bottom:4px; }
+.subtitle { text-align:center; color:#666; margin-bottom:20px; font-size:14px; }
+table { width:100%; border-collapse:collapse; margin-bottom: 14px;}
+th,td { padding:10px 8px; text-align:center; font-size:13px; }
+th { color:#555;font-weight:600;}
+input[type="number"],input[type="date"]{width:90%;padding:7px;border-radius:8px;border:1px solid #ccc;font-size:13px;}
+.result{ font-weight:600; color:#7b3fe4; }
+.summary{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.summary-box{flex:1;min-width:200px;background:#f4ecff;padding:16px;border-radius:12px;text-align:center;}
+.value{font-size:22px;font-weight:700;color:#7b3fe4;}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+.btn{padding:8px 16px;border-radius:999px;color:white;border:none;font-weight:600;font-size:13px;cursor:pointer;}
+.btn-primary{background:#7b3fe4;}
+.btn-secondary{background:#6366f1;}
+.btn-gray{background:#6b7280;}
+
+/* history */
+#historyPage{display:none;}
+.history-title{text-align:center;font-size:22px;color:#7b3fe4;margin-bottom:10px;}
+.search-input{padding:6px;border:1px solid #ccc;border-radius:8px;width:200px;}
+.tag{font-weight:bold;font-size:12px;padding:4px 8px;border-radius:8px;display:inline-block;}
+.tag.ok{color:#16a34a;}
+.tag.avg{color:#eab308;}
+.tag.low{color:#dc2626;}
+.tag.bad{color:#7f1d1d;}
+.action-btn{cursor:pointer;font-size:12px;color:#2563eb;font-weight:600;}
+.action-del{color:#dc2626;}
+</style>
 </head>
+
 <body>
-  <!-- MAIN CALCULATOR PAGE -->
-  <div id="calcPage" class="card">
-    <h1>OFS</h1>
-    <div class="subtitle">Minimal Stock Level Calculator</div>
 
-    <div class="top-row">
-      <div class="date-block">
-        <label for="ofsDate">Select Date</label>
-        <input type="date" id="ofsDate">
-      </div>
-      <div>
-        <button class="btn btn-outline" onclick="showHistory()">View History</button>
-      </div>
-    </div>
+<div id="calcPage" class="card">
+<h1>OFS Score</h1>
+<div class="subtitle">Minimal Stock Level Evaluator</div>
 
-    <table>
-      <tr>
-        <th>Row</th>
-        <th>Days</th>
-        <th>Order</th>
-        <th>Direct % (optional)</th>
-        <th>Result %</th>
-      </tr>
-      <tr>
-        <td>Line</td>
-        <td><input type="number" id="line_days" min="0" oninput="recalculate()"></td>
-        <td><input type="number" id="line_order" min="0" oninput="recalculate()"></td>
-        <td><input type="number" id="line_direct" min="0" max="500" step="0.1" placeholder="Line % direct" oninput="recalculate()"></td>
-        <td class="result" id="line_percent">0.0%</td>
-      </tr>
-      <tr>
-        <td>Count</td>
-        <td><input type="number" id="count_days" min="0" oninput="recalculate()"></td>
-        <td><input type="number" id="count_order" min="0" oninput="recalculate()"></td>
-        <td><input type="number" id="count_direct" min="0" max="500" step="0.1" placeholder="Count % direct" oninput="recalculate()"></td>
-        <td class="result" id="count_percent">0.0%</td>
-      </tr>
-    </table>
+<label>Date:</label>
+<input type="date" id="ofsDate" style="margin-bottom:12px;">
 
-    <!-- Direct total % -->
-    <div style="margin:8px 0 4px 0;font-size:13px;color:#555;">
-      Direct Total % (optional – overrides Line & Count)
-    </div>
-    <input type="number" id="total_direct" min="0" max="500" step="0.1"
-           placeholder="Company given total % (e.g. 82.5)" oninput="recalculate()">
+<table>
+<tr>
+<th>Category</th><th>Total</th><th>Ordered</th><th>%</th><th>Score</th>
+</tr>
+<tr>
+<td>Line Items</td>
+<td><input type="number" id="line_total" min="0" oninput="recalc()"></td>
+<td><input type="number" id="line_ordered" min="0" oninput="recalc()"></td>
+<td class="result" id="line_percent">0%</td>
+<td class="result" id="line_score">0.00 / 7.5</td>
+</tr>
+<tr>
+<td>Qty Items</td>
+<td><input type="number" id="qty_total" min="0" oninput="recalc()"></td>
+<td><input type="number" id="qty_ordered" min="0" oninput="recalc()"></td>
+<td class="result" id="qty_percent">0%</td>
+<td class="result" id="qty_score">0.00 / 7.5</td>
+</tr>
+</table>
 
-    <div class="summary">
-      <div class="summary-box">
-        <div class="label">Total % (Line + Count)</div>
-        <div class="value" id="total_percent">0.0%</div>
-      </div>
-      <div class="summary-box">
-        <div class="label">Average % used</div>
-        <div class="value" id="avg_percent">0.0%</div>
-      </div>
-      <div class="summary-box">
-        <div class="label">Final Score / 15</div>
-        <div class="value" id="final_score">0.00</div>
-      </div>
-    </div>
+<div class="summary">
+<div class="summary-box"><div>Final Score</div><div class="value" id="final_score">0.00 / 15</div></div>
+<div class="summary-box"><div>Status</div><div class="value" id="status_label">-</div></div>
+</div>
 
-    <div class="footer-text">
-      Target: <b>80%</b>, Lower limit: <b>60%</b>, Weight: <b>15 marks</b>.<br>
-      Priority: <b>Total Direct %</b> → else <b>Line/Count Direct %</b> → else <b>Days / Order</b>.
-    </div>
+<div class="btn-row">
+<button class="btn btn-gray" onclick="showHistory()">History</button>
+<button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+<button id="saveBtn" class="btn btn-primary" onclick="saveOrUpdate()">Save</button>
+</div>
+</div>
 
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
-      <button class="btn btn-primary" onclick="saveToHistory()">Save to History</button>
-    </div>
-  </div>
+<!-- HISTORY PAGE -->
+<div id="historyPage" class="card">
+<div class="history-title">OFS History</div>
+<div style="display:flex;gap:10px;margin-bottom:10px;">
+<button class="btn btn-gray" onclick="showCalc()">← Back</button>
+<input type="text" id="searchInput" class="search-input" placeholder="Search date...">
+</div>
+<table>
+<thead>
+<tr>
+<th>Date</th><th>L Total</th><th>L Ord</th><th>L%</th><th>L Score</th>
+<th>Q Total</th><th>Q Ord</th><th>Q%</th><th>Q Score</th>
+<th>Final</th><th>Status</th><th>Edit</th><th>Delete</th>
+</tr>
+</thead>
+<tbody id="historyBody"><tr><td colspan="13">Loading...</td></tr></tbody>
+</table>
+</div>
 
-  <!-- HISTORY PAGE -->
-  <div id="historyPage" class="card">
-    <div class="page-title">OFS History</div>
-    <div class="history-sub">Saved results (stored in Hostinger MySQL database)</div>
+<script>
+let editId=null;
 
-    <div class="history-top">
-      <button class="btn btn-outline" onclick="showCalc()">← Back to Calculator</button>
-      <div class="search-box">
-        <span>Search date / % :</span>
-        <input type="text" id="searchInput" placeholder="Type & press Enter">
-      </div>
-    </div>
+function calcP(t,o){return(t>0?o/t*100:0);}
+function calcS(p){return p>=80?7.5:(p<=60?0:((p-60)/20)*7.5); }
 
-    <table class="history-table" id="historyTable">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Date</th>
-          <th>Line %</th>
-          <th>Count %</th>
-          <th>Total % used</th>
-          <th>Average %</th>
-          <th>Final Score / 15</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody">
-        <tr><td colspan="10" class="loading">Loading history...</td></tr>
-      </tbody>
-    </table>
-    <div id="emptyHistory" class="empty-text" style="display:none;">
-      No entries saved yet.
-    </div>
-  </div>
+function recalc(){
+let lt=+line_total.value||0, lo=+line_ordered.value||0;
+let qt=+qty_total.value||0, qo=+qty_ordered.value||0;
+let lp=calcP(lt,lo), qp=calcP(qt,qo);
+let ls=calcS(lp), qs=calcS(qp);
+let fin=ls+qs;
 
-  <script>
-    let currentEditId = null;   // DB row id (null = new)
+line_percent.textContent=lp.toFixed(1)+"%";
+qty_percent.textContent=qp.toFixed(1)+"%";
+line_score.textContent=ls.toFixed(2)+" / 7.5";
+qty_score.textContent=qs.toFixed(2)+" / 7.5";
+final_score.textContent=fin.toFixed(2)+" / 15";
 
-    function calcPercent(days, order) {
-      if (!days || !order || days <= 0) return 0;
-      return (order / days) * 100;
-    }
-
-    function scoreFromAverage(avg) {
-      const target = 80;
-      const lower = 60;
-      const weight = 15;
-      if (avg < lower) return 0;
-      if (avg >= target) return weight;
-      return ((avg - lower) / (target - lower)) * weight;
-    }
-
-    function formatPercent(p) {
-      return p.toFixed(1) + "%";
-    }
-
-    // MAIN LOGIC
-    function recalculate() {
-      const lineDays   = parseFloat(document.getElementById("line_days").value);
-      const lineOrder  = parseFloat(document.getElementById("line_order").value);
-      const countDays  = parseFloat(document.getElementById("count_days").value);
-      const countOrder = parseFloat(document.getElementById("count_order").value);
-
-      const lineDirect  = parseFloat(document.getElementById("line_direct").value)  || 0;
-      const countDirect = parseFloat(document.getElementById("count_direct").value) || 0;
-      const totalDirect = parseFloat(document.getElementById("total_direct").value) || 0;
-
-      let lineP_calc  = calcPercent(lineDays, lineOrder);
-      let countP_calc = calcPercent(countDays, countOrder);
-
-      if (lineDirect  > 0) lineP_calc  = lineDirect;
-      if (countDirect > 0) countP_calc = countDirect;
-
-      let totalP, avgP;
-
-      if (totalDirect > 0) {
-        totalP = lineP_calc + countP_calc; // info only
-        avgP   = totalDirect;
-      } else {
-        totalP = lineP_calc + countP_calc;
-        const parts = [];
-        if (lineP_calc  > 0) parts.push(lineP_calc);
-        if (countP_calc > 0) parts.push(countP_calc);
-        avgP = parts.length ? parts.reduce((a,b)=>a+b,0)/parts.length : 0;
-      }
-
-      const score = scoreFromAverage(avgP);
-
-      document.getElementById("line_percent").textContent  = formatPercent(lineP_calc);
-      document.getElementById("count_percent").textContent = formatPercent(countP_calc);
-      document.getElementById("total_percent").textContent = formatPercent(totalP);
-      document.getElementById("avg_percent").textContent   = formatPercent(avgP);
-      document.getElementById("final_score").textContent   = score.toFixed(2);
-
-      const scoreEl = document.getElementById("final_score");
-      scoreEl.classList.remove("score-good","score-mid","score-bad");
-      if (avgP >= 80) scoreEl.classList.add("score-good");
-      else if (avgP >= 60) scoreEl.classList.add("score-mid");
-      else scoreEl.classList.add("score-bad");
-    }
-
-    function resetForm() {
-      ["line_days","line_order","count_days","count_order",
-       "line_direct","count_direct","total_direct","ofsDate"]
-        .forEach(id => document.getElementById(id).value = "");
-
-      document.getElementById("line_percent").textContent  = "0.0%";
-      document.getElementById("count_percent").textContent = "0.0%";
-      document.getElementById("total_percent").textContent = "0.0%";
-      document.getElementById("avg_percent").textContent   = "0.0%";
-      document.getElementById("final_score").textContent   = "0.00";
-
-      const scoreEl = document.getElementById("final_score");
-      scoreEl.classList.remove("score-good","score-mid","score-bad");
-
-      currentEditId = null;
-    }
-
-    // ---- API HELPERS ----
-    async function fetchHistoryFromServer() {
-      try {
-        const res = await fetch("/ofs/history");
-        const data = await res.json();
-        console.log("OFS history API data:", data);
-        if (!res.ok || data.status !== "ok") return [];
-        return data.items || [];
-      } catch (e) {
-        console.error("History fetch error:", e);
-        return [];
-      }
-    }
-
-
-    async function saveToHistory() {
-      const dateVal = document.getElementById("ofsDate").value;
-      if (!dateVal) {
-        alert("Please select a date before saving to history.");
-        return;
-      }
-
-      recalculate();
-
-      const lineP  = parseFloat(document.getElementById("line_percent").textContent)  || 0;
-      const countP = parseFloat(document.getElementById("count_percent").textContent) || 0;
-      const totalP = parseFloat(document.getElementById("total_percent").textContent) || 0;
-      const avgP   = parseFloat(document.getElementById("avg_percent").textContent)   || 0;
-      const score  = parseFloat(document.getElementById("final_score").textContent)   || 0;
-
-      const status = avgP >= 60 ? "Within Limit" : "Below Limit";
-
-      const payload = {
-        date: dateVal,
-        lineP,
-        countP,
-        totalP,
-        avgP,
-        score,
-        status
-      };
-
-      try {
-        let res;
-        if (currentEditId) {
-          res = await fetch(`/ofs/edit/${currentEditId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        } else {
-          res = await fetch("/ofs/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        }
-
-        const data = await res.json();
-        if (!res.ok || data.status !== "ok") {
-          alert("Save failed: " + (data.message || "Unknown error"));
-          return;
-        }
-
-        alert(currentEditId ? "History entry updated." : "OFS result saved to database.");
-        currentEditId = null;
-        renderHistory();
-      } catch (e) {
-        console.error("Save error:", e);
-        alert("Network/Server error. Please check your connection.");
-      }
-    }
-
-    async function renderHistory(filterText = "") {
-      const tbody = document.getElementById("historyBody");
-      const empty = document.getElementById("emptyHistory");
-
-      tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading...</td></tr>';
-
-      const hist = await fetchHistoryFromServer();
-      tbody.innerHTML = "";
-
-      let data = hist || [];
-
-      // --- SEARCH (dd-mm-yyyy and % values) ---
-      const q = (filterText || "").trim().toLowerCase();
-      if (q) {
-        data = data.filter(rec => {
-          // date format dd-mm-yyyy
-          const dObj = new Date(rec.calc_date);
-          const dd = String(dObj.getDate()).padStart(2, "0");
-          const mm = String(dObj.getMonth() + 1).padStart(2, "0");
-          const yyyy = dObj.getFullYear();
-          const formattedDate = `${dd}-${mm}-${yyyy}`;   // 05-12-2025
-
-          const dateStr = formattedDate.toLowerCase();
-          const nums = `${rec.line_percent} ${rec.count_percent} ${rec.total_used_percent} ${rec.average_percent} ${rec.final_score_15}`.toLowerCase();
-
-          return (dateStr + " " + nums).includes(q);
-        });
-      }
-      // ----------------------------------------
-
-      if (!data.length) {
-        empty.style.display = "block";
-        return;
-      }
-      empty.style.display = "none";
-
-      data.forEach((rec, idx) => {
-        const tr = document.createElement("tr");
-
-        // date format dd-mm-yyyy
-        const dObj = new Date(rec.calc_date);
-        const dd = String(dObj.getDate()).padStart(2, "0");
-        const mm = String(dObj.getMonth() + 1).padStart(2, "0");
-        const yyyy = dObj.getFullYear();
-        const formattedDate = `${dd}-${mm}-${yyyy}`;
-
-        const statusSafe = Number(rec.average_percent) >= 60;
-        const statusHtml = statusSafe
-          ? '<span class="tag-safe">Within Limit</span>'
-          : '<span class="tag-risk">Below Limit</span>';
-
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${formattedDate}</td>
-          <td>${Number(rec.line_percent).toFixed(1)}%</td>
-          <td>${Number(rec.count_percent).toFixed(1)}%</td>
-          <td>${Number(rec.total_used_percent).toFixed(1)}%</td>
-          <td>${Number(rec.average_percent).toFixed(1)}%</td>
-          <td>${Number(rec.final_score_15).toFixed(2)}</td>
-          <td>${statusHtml}</td>
-          <td>
-            <button class="btn btn-small btn-secondary" onclick="editEntry(${rec.id})">Edit</button>
-            <button class="btn btn-small btn-danger" onclick="deleteEntry(${rec.id})">Delete</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-
-    async function deleteEntry(id) {
-      if (!confirm("Delete this entry permanently from database?")) return;
-      try {
-        const res = await fetch(`/ofs/delete/${id}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok || data.status !== "ok") {
-          alert("Delete failed: " + (data.message || "Unknown error"));
-          return;
-        }
-        renderHistory(document.getElementById("searchInput").value);
-        alert("Entry deleted successfully.");
-      } catch (e) {
-        console.error("Delete error:", e);
-        alert("Network/Server error.");
-      }
-    }
-
-    async function editEntry(id) {
-  const hist = await fetchHistoryFromServer();
-  const rec = hist.find(r => r.id === id);
-  if (!rec) {
-    alert("Entry not found.");
-    return;
-  }
-
-  currentEditId = id;
-
-  // calc_date ko hamesha input type="date" ke format me lao
-  let dbDate = (rec.calc_date || "").toString().slice(0, 10); // "2025-12-05" ya "05-12-2025"
-
-  if (dbDate.includes("-")) {
-    const parts = dbDate.split("-");
-    // agar "dd-mm-yyyy" mila to usko "yyyy-mm-dd" me convert karo
-    if (parts[0].length === 2) {
-      const [d, m, y] = parts;
-      dbDate = `${y}-${m}-${d}`;
-    }
-  }
-
-  document.getElementById("ofsDate").value      = dbDate;
-  document.getElementById("line_direct").value  = Number(rec.line_percent).toFixed(1);
-  document.getElementById("count_direct").value = Number(rec.count_percent).toFixed(1);
-  document.getElementById("total_direct").value = Number(rec.average_percent).toFixed(1);
-
-  document.getElementById("line_days").value  = "";
-  document.getElementById("line_order").value = "";
-  document.getElementById("count_days").value = "";
-  document.getElementById("count_order").value = "";
-
-  recalculate();
-  showCalc();
-  alert("Values loaded for editing. Adjust values and click 'Save to History' to update.");
+let st="BELOW LIMIT";
+if(fin>=10) st="WITHIN LIMIT";
+else if(fin>=5) st="AVERAGE";
+else if(fin>0) st="LOW";
+status_label.textContent=st;
 }
 
-    function showHistory() {
-      document.getElementById("calcPage").style.display = "none";
-      document.getElementById("historyPage").style.display = "block";
-      renderHistory();
-    }
+function resetForm(){
+editId=null;
+saveBtn.textContent="Save";
+["line_total","line_ordered","qty_total","qty_ordered","ofsDate"]
+.forEach(id=>document.getElementById(id).value="");
+recalc();
+}
 
-    function showCalc() {
-      document.getElementById("historyPage").style.display = "none";
-      document.getElementById("calcPage").style.display = "block";
-    }
+function showCalc(){historyPage.style.display="none";calcPage.style.display="block";}
+function showHistory(){loadHistory();calcPage.style.display="none";historyPage.style.display="block";}
 
-    // Event listeners
-    document.getElementById("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") {
-        renderHistory(e.target.value);
-      }
-    });
+function formatDate(d){
+const dt=new Date(d);
+return dt.toLocaleDateString("en-GB");
+}
 
-    ["line_days","line_order","count_days","count_order",
-     "line_direct","count_direct","total_direct"].forEach(id => {
-      document.getElementById(id).addEventListener("keypress", e => {
-        if (e.key === "Enter") recalculate();
-      });
-    });
+function saveOrUpdate(){
+let payload={
+date:ofsDate.value,
+line_total:+line_total.value||0,
+line_ordered:+line_ordered.value||0,
+qty_total:+qty_total.value||0,
+qty_ordered:+qty_ordered.value||0,
+line_percent:parseFloat(line_percent.textContent),
+qty_percent:parseFloat(qty_percent.textContent),
+line_score:parseFloat(line_score.textContent),
+qty_score:parseFloat(qty_score.textContent),
+final_score:parseFloat(final_score.textContent),
+status:status_label.textContent
+};
 
-    // Expose functions globally
-    window.saveToHistory = saveToHistory;
-    window.showHistory   = showHistory;
-    window.showCalc      = showCalc;
-    window.deleteEntry   = deleteEntry;
-    window.editEntry     = editEntry;
-    window.resetForm     = resetForm;
-  </script>
+if(editId){
+fetch(`/ofs/edit_v2/${editId}`,{
+method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+.then(()=>{resetForm();showHistory();});
+} else {
+fetch("/ofs/save_v2",{
+method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+.then(()=>{resetForm();showHistory();});
+}
+}
+
+function loadHistory(){
+fetch("/ofs/history_v2").then(r=>r.json()).then(d=>{
+let tb=historyBody;tb.innerHTML="";
+d.items.forEach(row=>{
+let tagClass=row.status=="WITHIN LIMIT"?"ok":row.status=="AVERAGE"?"avg":row.status=="LOW"?"low":"bad";
+tb.innerHTML+=`
+<tr>
+<td>${formatDate(row.calc_date)}</td>
+<td>${row.line_total}</td><td>${row.line_ordered}</td><td>${row.line_percent}%</td><td>${row.line_score}</td>
+<td>${row.qty_total}</td><td>${row.qty_ordered}</td><td>${row.qty_percent}%</td><td>${row.qty_score}</td>
+<td>${row.final_score}</td>
+<td><span class="tag ${tagClass}">${row.status}</span></td>
+<td><span class="action-btn" onclick="editRow(${row.id},'${row.calc_date}',${row.line_total},${row.line_ordered},${row.qty_total},${row.qty_ordered})">Edit</span></td>
+<td><span class="action-del" onclick="delRow(${row.id})">Delete</span></td>
+</tr>`;
+});
+});
+}
+
+function editRow(id,dt,lt,lo,qt,qo){
+editId=id;
+saveBtn.textContent="Update";
+showCalc();
+ofsDate.value=new Date(dt).toISOString().split("T")[0];
+line_total.value=lt;
+line_ordered.value=lo;
+qty_total.value=qt;
+qty_ordered.value=qo;
+recalc();
+}
+
+function delRow(id){
+fetch(`/ofs/delete/${id}`,{method:"DELETE"}).then(()=>loadHistory());
+}
+</script>
 </body>
 </html>

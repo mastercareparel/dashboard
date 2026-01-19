@@ -28,10 +28,8 @@ def get_db_connection():
     print("DB CONNECTED (PyMySQL)")
     return conn
 
-
-
-# ---------- AUTH PAGES ----------
-
+def get_db():
+    return get_db_connection()
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -51,7 +49,7 @@ def register():
         try:
             conn = get_db_connection()
             cur = conn.cursor()
-            # check duplicate
+
             cur.execute("SELECT id FROM users WHERE username=%s OR email=%s", (username, email))
             existing = cur.fetchone()
             if existing:
@@ -71,13 +69,13 @@ def register():
         except Exception as e:
             print("REGISTER ERROR:", e)
             return render_template('registration.html', error="Server error, try again.")
-    # GET
+
     return render_template('registration.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        identifier = request.form.get('identifier', '').strip()  # username or email
+        identifier = request.form.get('identifier', '').strip() 
         password = request.form.get('password', '').strip()
 
 
@@ -97,15 +95,13 @@ def login():
             if not user or user['password'] != password:
                 return render_template('login.html', error="Invalid credentials.")
 
-
-            # login success
             session['user_id'] = user['id']
             session['username'] = user['username']
             return redirect(url_for('performance_page'))
         except Exception as e:
             print("LOGIN ERROR:", e)
             return render_template('login.html', error="Server error, try again.")
-    # GET
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -124,14 +120,12 @@ def performance_page():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    # ye wahi page hai jisme performance scoring dashboard (index.html) hai
+
     return render_template('index.html', username=session.get('username'))
 
 
 from datetime import datetime
 from flask import Flask, request, jsonify, session
-
-# ... baaki imports, app, get_db_connection, auth code same ...
 
 @app.route('/performance-save', methods=['POST'])
 def performance_save():
@@ -141,10 +135,9 @@ def performance_save():
     data = request.get_json()
     total_score = float(data.get('total_score', 0))
     grade = data.get('grade', 'D')
-    date_str = data.get('calc_date')      # "2026-01-24" from <input type="date">
+    date_str = data.get('calc_date')     
 
     if date_str:
-        # direct YYYY-MM-DD store karo (column DATE ya VARCHAR(10)) [web:11][web:39]
         calc_date = date_str
     else:
         calc_date = datetime.utcnow().strftime('%Y-%m-%d')
@@ -205,7 +198,7 @@ def performance_delete(row_id):
             "DELETE FROM PerformanceDashboard WHERE id = %s AND user_id = %s",
             (row_id, user_id)
         )
-        conn.commit()   # bina commit ke delete nahi hoga [web:66][web:81]
+        conn.commit()   
         cur.close()
         conn.close()
         return jsonify({'status': 'ok'})
@@ -219,11 +212,9 @@ def performance_delete(row_id):
 def Exltp():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    # sirf template render karega, JS ab API se data lega
+   
     return render_template("calculators/LTP.html", username=session.get('username'))
 
-
-# 1) Naya record insert (Register form submit)
 @app.route('/ltp-save', methods=['POST'])
 def ltp_save():
     if 'user_id' not in session:
@@ -233,12 +224,12 @@ def ltp_save():
     user_id     = session['user_id']
 
     service_no  = data.get('service_no')
-    date_reg    = data.get('date_reg')      # "YYYY-MM-DD"
-    date_close  = data.get('date_close')    # "" ya "YYYY-MM-DD"
-    days        = data.get('days')          # int
-    status      = data.get('status')        # "LTP" / "EX-LTP" / "Normal"
-    hours_diff  = data.get('hours_diff')    # float ya null
-    within_2hr  = data.get('within_2hr')    # "Yes"/"No"/"-"
+    date_reg    = data.get('date_reg')      
+    date_close  = data.get('date_close')    
+    days        = data.get('days')          
+    status      = data.get('status')        
+    hours_diff  = data.get('hours_diff')   
+    within_2hr  = data.get('within_2hr')    
 
     try:
         conn = get_db_connection()
@@ -269,8 +260,6 @@ def ltp_save():
         print("LTP INSERT ERROR:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-
-# 2) History fetch (table fill + dashboard stats)
 @app.route('/ltp-history', methods=['GET'])
 def ltp_history():
     if 'user_id' not in session:
@@ -298,8 +287,6 @@ def ltp_history():
         print("LTP HISTORY ERROR:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-
-# 3) Delete record
 @app.route('/ltp-delete/<int:row_id>', methods=['DELETE'])
 def ltp_delete(row_id):
     if 'user_id' not in session:
@@ -318,8 +305,6 @@ def ltp_delete(row_id):
         print("LTP DELETE ERROR:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-
-# 4) Update (Edit)
 @app.route('/ltp-edit/<int:row_id>', methods=['PUT'])
 def ltp_edit(row_id):
     if 'user_id' not in session:
@@ -1044,170 +1029,299 @@ def negative():
 def credit_block():
     return render_template("calculators/credit_block.html")
 
+from flask import request, jsonify, session, redirect, url_for, render_template
+import pymysql
+
+
+# ---------- ROUTE PAGE ----------
+
 @app.route("/ofs")
 def ofs():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template(
-        "calculators/ofs.html",
-        username=session.get('username')
-    )
+    return render_template("calculators/ofs.html", username=session.get('username'))
 
-
-@app.route("/ofs/save", methods=["POST"])
-def ofs_save():
+# ------------------------------------------
+# SAVE (INSERT)
+# ------------------------------------------
+@app.route("/ofs/save_v2", methods=["POST"])
+def ofs_save_v2():
     if 'user_id' not in session:
-        return jsonify({"status": "error", "message": "Not logged in"}), 401
+        return jsonify(status="error", message="Not logged in"), 401
 
     data = request.get_json()
     user_id = session['user_id']
 
-    conn = get_db_connection()
     try:
+        conn = get_db_connection()
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO ofs_history
-                    (user_id, calc_date, line_percent, count_percent,
-                     total_used_percent, average_percent, final_score_15)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    user_id,
-                    data["date"],
-                    data["lineP"],
-                    data["countP"],
-                    data["totalP"],
-                    data["avgP"],
-                    data["score"],
-                ),
-            )
+            cur.execute("""
+                INSERT INTO ofs_history_v2
+                (user_id, calc_date, line_total, line_ordered, line_percent,
+                 line_score, qty_total, qty_ordered, qty_percent, qty_score,
+                 final_score, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                user_id,
+                data["date"],
+                data["line_total"],
+                data["line_ordered"],
+                data["line_percent"],
+                data["line_score"],
+                data["qty_total"],
+                data["qty_ordered"],
+                data["qty_percent"],
+                data["qty_score"],
+                data["final_score"],
+                data["status"]
+            ))
         conn.commit()
-        return jsonify({"status": "ok"})
+        return jsonify(status="ok")
+
     except Exception as e:
         print("OFS SAVE ERROR:", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify(status="error", message=str(e)), 500
+
     finally:
         conn.close()
 
-
-@app.route("/ofs/edit/<int:id>", methods=["PUT"])
-def ofs_edit(id):
-    if 'user_id' not in session:
-        return jsonify({"status": "error", "message": "Not logged in"}), 401
-
-    data = request.get_json()
-    user_id = session['user_id']
-
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                UPDATE ofs_history
-                   SET calc_date=%s,
-                       line_percent=%s,
-                       count_percent=%s,
-                       total_used_percent=%s,
-                       average_percent=%s,
-                       final_score_15=%s
-                 WHERE id=%s AND user_id=%s
-                """,
-                (
-                    data["date"],
-                    data["lineP"],
-                    data["countP"],
-                    data["totalP"],
-                    data["avgP"],
-                    data["score"],
-                    id,
-                    user_id,
-                ),
-            )
-            if cur.rowcount == 0:
-                return (
-                    jsonify(
-                        {"status": "error", "message": "Record not found or not yours"}
-                    ),
-                    404,
-                )
-        conn.commit()
-        return jsonify({"status": "ok"})
-    except Exception as e:
-        print("OFS EDIT ERROR:", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        conn.close()
-
-
-@app.route("/ofs/delete/<int:id>", methods=["DELETE"])
-def ofs_delete(id):
-    if 'user_id' not in session:
-        return jsonify({"status": "error", "message": "Not logged in"}), 401
-
-    user_id = session['user_id']
-
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM ofs_history WHERE id=%s AND user_id=%s",
-                (id, user_id),
-            )
-            if cur.rowcount == 0:
-                return (
-                    jsonify(
-                        {"status": "error", "message": "Record not found or not yours"}
-                    ),
-                    404,
-                )
-        conn.commit()
-        return jsonify({"status": "ok"})
-    except Exception as e:
-        print("OFS DELETE ERROR:", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        conn.close()
-
-
-@app.route("/ofs/history")
-def ofs_history_route():
+# ------------------------------------------
+# HISTORY (SELECT)
+# ------------------------------------------
+@app.route("/ofs/history_v2", methods=["GET"])
+def ofs_history_v2():
     if 'user_id' not in session:
         return jsonify(status="error", message="Not logged in"), 401
 
     user_id = session['user_id']
 
-    conn = get_db_connection()
     try:
+        conn = get_db_connection()
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT id,
-                       calc_date,
-                       line_percent,
-                       count_percent,
-                       total_used_percent,
-                       average_percent,
-                       final_score_15
-                  FROM ofs_history
-                 WHERE user_id = %s
-                 ORDER BY calc_date DESC, id DESC
-                """,
-                (user_id,),
-            )
+            cur.execute("""
+                SELECT id, calc_date, line_total, line_ordered, line_percent,
+                       line_score, qty_total, qty_ordered, qty_percent, qty_score,
+                       final_score, status
+                FROM ofs_history_v2
+                WHERE user_id = %s
+                ORDER BY calc_date DESC, id DESC
+            """, (user_id,))
             rows = cur.fetchall()
+
         return jsonify(status="ok", items=rows)
+
     except Exception as e:
         print("OFS HISTORY ERROR:", e)
         return jsonify(status="error", message=str(e)), 500
+
+    finally:
+        conn.close()
+
+# ------------------------------------------
+# EDIT (UPDATE)
+# ------------------------------------------
+@app.route("/ofs/edit_v2/<int:id>", methods=["PUT"])
+def ofs_edit_v2(id):
+    if 'user_id' not in session:
+        return jsonify(status="error", message="Not logged in"), 401
+
+    data = request.get_json()
+    user_id = session['user_id']
+
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE ofs_history_v2
+                SET calc_date=%s, line_total=%s, line_ordered=%s, line_percent=%s,
+                    line_score=%s, qty_total=%s, qty_ordered=%s, qty_percent=%s,
+                    qty_score=%s, final_score=%s, status=%s
+                WHERE id=%s AND user_id=%s
+            """, (
+                data["date"],
+                data["line_total"],
+                data["line_ordered"],
+                data["line_percent"],
+                data["line_score"],
+                data["qty_total"],
+                data["qty_ordered"],
+                data["qty_percent"],
+                data["qty_score"],
+                data["final_score"],
+                data["status"],
+                id,
+                user_id
+            ))
+
+            if cur.rowcount == 0:
+                return jsonify(status="error", message="Not found"), 404
+
+        conn.commit()
+        return jsonify(status="ok")
+
+    except Exception as e:
+        print("OFS EDIT ERROR:", e)
+        return jsonify(status="error", message=str(e)), 500
+
+    finally:
+        conn.close()
+
+# ------------------------------------------
+# DELETE
+# ------------------------------------------
+@app.route("/ofs/delete/<int:id>", methods=["DELETE"])
+def ofs_delete_v2(id):
+    if 'user_id' not in session:
+        return jsonify(status="error", message="Not logged in"), 401
+
+    user_id = session['user_id']
+
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM ofs_history_v2
+                WHERE id=%s AND user_id=%s
+            """, (id, user_id))
+
+            if cur.rowcount == 0:
+                return jsonify(status="error", message="Not found"), 404
+
+        conn.commit()
+        return jsonify(status="ok")
+
+    except Exception as e:
+        print("OFS DELETE ERROR:", e)
+        return jsonify(status="error", message=str(e)), 500
+
     finally:
         conn.close()
 
 from datetime import datetime
-from flask import request, jsonify, session, redirect, url_for
 import pymysql
 
-# ---------- PAGE ROUTE ----------
+@app.route('/sc-d1')
+def sc_d1_page():
+    if 'user_id' not in session:
+        return redirect('/')
+    return render_template("sc_d1.html")
+
+@app.route('/sc-d1/save', methods=['POST'])
+def sc_d1_save():
+    if 'user_id' not in session:
+        return jsonify({"status":"error","msg":"login required"}), 401
+
+    data = request.get_json()
+    service_no = data.get("service_no")
+    reg_date   = data.get("reg_date")
+
+    if not service_no or not reg_date:
+        return jsonify({"status":"error","msg":"missing fields"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO sc_d1_history(user_id, service_no, reg_date, close_date, within_2)
+        VALUES(%s,%s,%s,NULL,0)
+    """, (session['user_id'], service_no, reg_date))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"status":"ok"})
+
+@app.route('/sc-d1/close/<int:row_id>', methods=['PUT'])
+def sc_d1_close(row_id):
+    if 'user_id' not in session:
+        return jsonify({"status":"error"}), 401
+
+    data = request.get_json()
+    close_date = data.get("close_date")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT reg_date FROM sc_d1_history WHERE id=%s AND user_id=%s",
+                (row_id, session['user_id']))
+    row = cur.fetchone()
+
+    if not row:
+        return jsonify({"status":"error","msg":"not found"})
+
+    reg = datetime.strptime(str(row['reg_date']), "%Y-%m-%d")
+    clo = datetime.strptime(close_date, "%Y-%m-%d")
+    diff = (clo - reg).days
+    within = 1 if diff <= 2 else 0
+
+    cur.execute("""
+        UPDATE sc_d1_history
+        SET close_date=%s, within_2=%s
+        WHERE id=%s AND user_id=%s
+    """, (close_date, within, row_id, session['user_id']))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"status":"ok"})
+
+@app.route('/sc-d1/delete/<int:row_id>', methods=['DELETE'])
+def sc_d1_delete(row_id):
+    if 'user_id' not in session:
+        return jsonify({"status":"error"}), 401
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM sc_d1_history WHERE id=%s AND user_id=%s",
+                (row_id, session['user_id']))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"status":"ok"})
+    
+@app.route('/sc-d1/history')
+def sc_d1_history():
+    if 'user_id' not in session:
+        return jsonify({"status":"error"}), 401
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, service_no, reg_date, close_date, within_2
+        FROM sc_d1_history
+        WHERE user_id=%s
+        ORDER BY id DESC
+    """, (session['user_id'],))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify({"status":"ok","items":rows})
+
+@app.route('/sc-d1/edit/<int:row_id>', methods=['PUT'])
+def sc_d1_edit(row_id):
+    if 'user_id' not in session:
+        return jsonify({"status": "error", "msg": "login required"}), 401
+
+    data = request.get_json()
+
+    reg_date   = data.get("reg_date")
+    close_date = data.get("close_date")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE sc_d1_history
+        SET reg_date = COALESCE(%s, reg_date),
+            close_date = COALESCE(%s, close_date)
+        WHERE id=%s AND user_id=%s
+    """, (reg_date, close_date, row_id, session['user_id']))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"status":"ok"})
 
 @app.route('/ub-repair')
 def ub_repair():
@@ -1325,37 +1439,42 @@ def ub_repair_edit(row_id):
     try:
         user_id = session['user_id']
 
-        source      = data.get('source')
-        ub_consume  = data.get('ubConsume')
-        total_lcd   = data.get('totalLCD')
-        direct_p    = data.get('directPercent')
-        percentage  = data.get('percentage')
-        score       = data.get('score')
+        # ✅ Match frontend keys EXACTLY
+        payload = {
+            'source': data.get('source'),
+            'ub_consume': float(data.get('ubConsume', 0)),
+            'total_lcd': float(data.get('totalLCD', 0)),
+            'direct_percent': float(data.get('directPercent', 0)),
+            'percentage': float(data.get('percentage', 0)),
+            'score': float(data.get('score', 0))
+        }
 
         conn = get_db_connection()
-        cur  = conn.cursor()
-        cur.execute(
-            """
+        cur = conn.cursor()
+        cur.execute("""
             UPDATE ub_repair_history
-               SET source         = COALESCE(%s, source),
-                   ub_consume     = COALESCE(%s, ub_consume),
-                   total_lcd      = COALESCE(%s, total_lcd),
-                   direct_percent = COALESCE(%s, direct_percent),
-                   percentage     = COALESCE(%s, percentage),
-                   score          = COALESCE(%s, score)
+               SET source = %s,
+                   ub_consume = %s,
+                   total_lcd = %s,
+                   direct_percent = %s,
+                   percentage = %s,
+                   score = %s
              WHERE id = %s AND user_id = %s
-            """,
-            (
-                source,
-                ub_consume,
-                total_lcd,
-                direct_p,
-                percentage,
-                score,
-                row_id,
-                user_id,
-            ),
-        )
+        """, (
+            payload['source'],
+            payload['ub_consume'],
+            payload['total_lcd'],
+            payload['direct_percent'],
+            payload['percentage'],
+            payload['score'],
+            row_id,
+            user_id
+        ))
+        
+        # Check if update affected any rows
+        if cur.rowcount == 0:
+            return jsonify({'status': 'error', 'message': 'No record found'}), 404
+            
         conn.commit()
         cur.close()
         conn.close()
@@ -1363,7 +1482,6 @@ def ub_repair_edit(row_id):
     except Exception as e:
         print("UB REPAIR EDIT ERROR:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
-
 
 @app.route('/ub-repair/delete/<int:row_id>', methods=['DELETE'])
 def ub_repair_delete(row_id):
@@ -1388,7 +1506,6 @@ def ub_repair_delete(row_id):
     except Exception as e:
         print("UB REPAIR DELETE ERROR:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
-
 
 # Route to handle parameter selection from home page
 @app.route('/select', methods=['POST'])
